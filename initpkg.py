@@ -8,6 +8,8 @@ import sys
 import os
 from types import ModuleType
 
+__version__ = "1.0a1"
+
 class Package(object):
     def __init__(self, name, exportdefs, metainfo):
         pkgmodule = sys.modules[name]
@@ -18,7 +20,8 @@ class Package(object):
         assert not hasattr(pkgmodule, '__pkg__')
         pkgmodule.__pkg__ = self
 
-        # make available pkgname.__
+        # make internal python modules available under pkgname.__.
+        # instead of pkgname. directly.
         implname = name + '.' + '__'
         self.implmodule = ModuleType(implname)
         self.implmodule.__name__ = implname
