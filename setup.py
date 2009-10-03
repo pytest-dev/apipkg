@@ -1,5 +1,5 @@
 """
-initpkg: control exported namespace of a python package.
+apipkg: control exported namespace of a python package.
 
 compatible to CPython 2.3 through to CPython 3.1, Jython, PyPy
 
@@ -13,15 +13,15 @@ try:
 except ImportError:
     from distutils.core import setup
 
-from initpkg import __version__
+from apipkg import __version__
 
 def main():
     setup(
-        name='initpkg',
-        description='initpkg: control exported namespace of a python package',
+        name='apipkg',
+        description='apipkg: control exported namespace of a python package',
         long_description = __doc__,
         version= __version__,
-        url='http://bitbucket.org/hpk42/initpkg',
+        url='http://bitbucket.org/hpk42/apipkg',
         license='MIT License',
         platforms=['unix', 'linux', 'osx', 'cygwin', 'win32'],
         author='holger krekel and others',
@@ -35,7 +35,7 @@ def main():
             'Operating System :: MacOS :: MacOS X',
             'Topic :: Software Development :: Libraries',
             'Programming Language :: Python'],
-        py_modules=['initpkg']
+        py_modules=['apipkg']
     )
 
 if __name__ == '__main__':

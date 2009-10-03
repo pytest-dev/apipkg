@@ -10,5 +10,5 @@ syntax:glob
 
 build
 dist
-initpkg.egg-info
+apipkg.egg-info
 
