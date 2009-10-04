@@ -1,4 +1,3 @@
-
 Welcome to apipkg!
 ------------------------
 
@@ -42,14 +41,16 @@ Both classes are lazy loaded and no imports apart from
 the root ``import mypkg`` are required.
 
 
-Including the code in your package
+Including apipkg in your package
 --------------------------------------
 
 If you don't want to add a depdency to your package you 
-can copy the ``apipkg.py`` somewhere to your own package, 
+can copy the `apipkg.py`_ somewhere to your own package, 
 e.g. ``_mypkg/apipkg.py`` in the above example. 
 
-Questions / contact
+.. _`apipkg.py`: http://bitbucket.org/hpk42/apipkg/src/tip/apipkg.py
+
+Feedback? 
 -----------------------
 
 If you have questions you are welcome to 
@@ -58,4 +59,5 @@ If you have questions you are welcome to
 * subscribe to the http://codespeak.net/mailman/listinfo/py-dev list. 
 * create an issue on http://bitbucket.org/hpk42/apipkg/issues
 
-have fun, holger 
+have fun, 
+holger krekel
