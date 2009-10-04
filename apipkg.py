@@ -11,7 +11,7 @@ from types import ModuleType
 
 __version__ = "1.0a1"
 
-def init(pkgname, **exportdefs):
+def init(pkgname, exportdefs):
     """ initialize package namespace from the export definitions. """
     pkgmodule = sys.modules[pkgname]
     pkg = ApiPackage(pkgmodule)
@@ -27,21 +27,20 @@ def init(pkgname, **exportdefs):
 
 
 class ApiPackage(object):
+    """ Hold information about implementation modules. """
     def __init__(self, pkgmodule):
         self.module = pkgmodule
         assert not hasattr(pkgmodule, '__apipkg__')
         pkgmodule.__apipkg__ = self
 
         # make all raw original python modules available under pkgname.__.
-        # instead of pkgname. directly.
-        implname = pkgmodule.__name__ + '.' + '__'
+        implname = pkgmodule.__name__ + "." + "__"
         self.implmodule = ModuleType(implname)
         self.implmodule.__name__ = implname
-        self.implmodule.__file__ = os.path.abspath(pkgmodule.__file__)
-        self.implmodule.__path__ = [os.path.abspath(p)
-                                       for p in pkgmodule.__path__]
+        self.implmodule.__file__ = pkgmodule.__file__
+        self.implmodule.__path__ = pkgmodule.__path__
         pkgmodule.__ = self.implmodule
-        setmodule(implname, self.implmodule)
+        sys.modules[implname] = self.implmodule
         # inhibit further direct filesystem imports through the package module
         del pkgmodule.__path__
 
@@ -71,8 +70,8 @@ class ApiModule(ModuleType):
         self.__all__ = list(importspec)
         self.__map__ = {}
         setattr(parent, name, self)
-        myfullname = parentname + "." + name 
-        setmodule(myfullname, self)
+        self.__myfullname__ = myfullname = parentname + "." + name
+        sys.modules[myfullname] = self
         for name, importspec in importspec.items():
             if isinstance(importspec, dict):
                 obj = ApiModule(name, pkg, self, importspec, myfullname)
@@ -85,13 +84,12 @@ class ApiModule(ModuleType):
                     self.__map__[name] = importspec
 
     def __repr__(self):
-        return '<ApiModule %r>' % (self.__name__,)
+        return '<ApiModule %r>' % (self.__myfullname__,)
 
     def __getattr__(self, name):
         try:
             importspec = self.__map__.pop(name)
         except KeyError:
-            __tracebackhide__ = True
             raise AttributeError(name)
         else:
             result = self.__apipkg__.importobj(importspec)
@@ -107,8 +105,3 @@ class ApiModule(ModuleType):
                 hasattr(self, name)  # force attribute load, ignore errors
         return dict
     __dict__ = property(__dict__)
-
-
-def setmodule(modpath, module):
-    #print ("setting sys.modules[%r] = %r" %(modpath, module))
-    sys.modules[modpath] = module

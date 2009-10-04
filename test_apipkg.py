@@ -16,37 +16,35 @@ class TestRealModule:
         tfile = pkgdir.join('__init__.py')
         tfile.write(py.code.Source("""
             import apipkg
-            apipkg.init('realtest', x={
-                'module': {
-                    '__doc__': 'testmodule::__doc__',
-                    'mytest0': 'testmodule::mytest0',
-                    'mytest1': 'testmodule::mytest1',
-                    'MyTest': 'testmodule::MyTest',
-            }})
+            apipkg.init(__name__, {
+                'x': {
+                    'module': {
+                        '__doc__': 'testmodule::__doc__',
+                        'mytest0': 'testmodule::mytest0',
+                        'mytest1': 'testmodule::mytest1',
+                        'MyTest': 'testmodule::MyTest',
+                    }
+                }
+            }
+            )
         """))
 
         tfile = pkgdir.join('testmodule.py')
         tfile.write(py.code.Source("""
             'test module'
+            from realtest.__.othermodule import MyTest
 
-            __all__ = ['mytest0', 'mytest1', 'MyTest']
+            #__all__ = ['mytest0', 'mytest1', 'MyTest']
 
             def mytest0():
                 pass
             def mytest1():
                 pass
-            class MyTest:
-                pass
-
         """))
-
-        import realtest # need to mimic what a user would do
-        #py.initpkg('realtest', {
-        #    'module': ('./testmodule.py', None)
-        #})
+        pkgdir.join("othermodule.py").write("class MyTest: pass")
 
     def setup_method(self, *args):
-        """Unload the test modules before each test."""
+        # Unload the test modules before each test.
         module_names = ['realtest', 'realtest.x', 'realtest.x.module']
         for modname in module_names:
             if modname in sys.modules:
@@ -56,6 +54,10 @@ class TestRealModule:
         import realtest.x
         assert 'realtest.x.module' in sys.modules
         assert getattr(realtest.x.module, 'mytest0')
+
+    def test_realmodule_repr(self):
+        import realtest.x
+        assert "<ApiModule 'realtest.x'>"  == repr(realtest.x)
 
     def test_realmodule_from(self):
         from realtest.x import module
@@ -89,3 +91,48 @@ class TestRealModule:
         s = pkg.getimportname(str(p))
         assert s == "realtest.__.testmodule"
         s = pkg.getimportname(p.dirpath().dirpath())
+
+
+
+# alternate ideas for specifying package + preliminary code
+#
+def test_parsenamespace():
+    spec = """
+        path.local    __.path.local::LocalPath
+        path.svnwc    __.path.svnwc::WCCommandPath
+        test.raises   __.test.outcome::raises
+    """
+    d = parsenamespace(spec)
+    print d
+    assert d == {'test': {'raises': '__.test.outcome::raises'},
+                 'path': {'svnwc': '__.path.svnwc::WCCommandPath',
+                          'local': '__.path.local::LocalPath'}
+            }
+def test_parsenamespace_errors():
+    py.test.raises(ValueError, """
+        parsenamespace('path.local xyz')
+    """)
+    py.test.raises(ValueError, """
+        parsenamespace('x y z')
+    """)
+
+def parsenamespace(spec):
+    ns = {}
+    for line in spec.split("\n"):
+        line = line.strip()
+        if not line or line[0] == "#":
+            continue
+        parts = [x.strip() for x in line.split()]
+        if len(parts) != 2:
+            raise ValueError("Wrong format: %r" %(line,))
+        apiname, spec = parts
+        if not spec.startswith("__"):
+            raise ValueError("%r does not start with __" %(spec,))
+        apinames = apiname.split(".")
+        cur = ns
+        for name in apinames[:-1]:
+            cur.setdefault(name, {})
+            cur = cur[name]
+        cur[apinames[-1]] = spec
+    return ns
+
