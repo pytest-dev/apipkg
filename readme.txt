@@ -24,10 +24,11 @@ and exports two objects imported from different modules::
         }
     }
 
-The package is initialized with a dictionary as namespace
-whose values may be further dictionaries.  If the value
-is a string it specifies an import location.  On accessing
-the according attribute the import will be performed::
+The package is initialized with a dictionary as namespace. 
+Namespace dictionaries contain ``name: value`` mappings 
+where the value may be another namespace dictionary or
+a string specifying an import location.  On accessing
+the according attribute an import will be performed::
 
     >>> import mypkg
     >>> mypkg.path
@@ -37,9 +38,9 @@ the according attribute the import will be performed::
     >>> mypkg.sub.Class2   # '_mypkg.othermodule' gets imported now
     <class _mypkg.somemodule.Class1 at 0xb7d428fc>
 
-Both classes are lazy loaded and no imports apart from
-the root ``import mypkg`` are required.
-
+The ``mypkg.sub`` namespace and both its classes are 
+lazy loaded and no imports apart from the root 
+``import mypkg`` is required. 
 
 Including apipkg in your package
 --------------------------------------
