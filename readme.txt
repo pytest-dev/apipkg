@@ -2,94 +2,60 @@
 Welcome to apipkg!
 ------------------------
 
-With apipkg you can control the exported namespace of a python package
-and greatly reduce the number of imports for your users.  It is a
-small pure python module that works on virtually all Python versions,
-including CPython2.3 to 3.1, Jython and PyPy.
+With apipkg you can control the exported namespace of a
+python package and greatly reduce the number of imports for your users.
+It is a small pure python module that works on virtually all Python
+versions, including CPython2.3 to Python3.1, Jython and PyPy.  It co-operates
+well with Python's ``help()`` system and common command line completion
+tools.  Usage is very simple: you can require 'apipkg' as a dependency
+or you can copy paste the <100 Lines of code into your project.
 
 Tutorial example
 -------------------
 
-Let's write a simple ``mypkg`` package and expose one object
-in a sub namespace.  First the ``__init__`` file::
+Here is a simple ``mypkg`` package that specifies one namespace
+and exports two objects imported from different modules::
 
     # mypkg/__init__.py
     import apipkg
-    apipkg.init(__name__, {
-        'sub': {
-            'SomeClass': 'somemodule::SomeClass',
+    apipkg.initpkg(__name__, {
+        'path': {
+            'Class1': "_mypkg.somemodule:Class1",
+            'Class2': "_mypkg.othermodule:Class2",
         }
-    })
+    }
 
-Exported namespaces are simple dictionaries where values can be
-dictionaries (sub namespaces) or a string specifying which module
-to import and which attribute to return. To make the
-example work we thus need to create a ``somemodule.py`` like this::
-
-    # mypkg/somemodule.py
-    class SomeClass
-        pass
-
-Now we are ready to go and can import our package and access
-the namespaces and class.
+The package is initialized with a dictionary as namespace
+whose values may be further dictionaries.  If the value
+is a string it specifies an import location.  On accessing
+the according attribute the import will be performed::
 
     >>> import mypkg
-    >>> mypkg.sub
-    <ApiModule 'mypkg.sub'>
-    >>> mypkg.sub.SomeClass    # 'somemodule.py' gets imported now
-    <class mypkg.__.somemodule.SomeClass at 0xb7d428fc>
+    >>> mypkg.path
+    <ApiModule 'mypkg.path'>
+    >>> mypkg.sub.Class1   # '_mypkg.somemodule' gets imported now
+    <class _mypkg.somemodule.Class1 at 0xb7d428fc>
+    >>> mypkg.sub.Class2   # '_mypkg.othermodule' gets imported now
+    <class _mypkg.somemodule.Class1 at 0xb7d428fc>
 
-The double underscore in ``mypkg.__`` is the raw import viewmodule implementation  gives you a hint prefix indicates an "implementation" module.
-
-that 'somemodule.SomeClass' the that 'somemodulethe actual "implementation" module.
-Here you'll notice something important.  ``apipkg`` made it
-so that your class
-
-
-This means
+Both classes are lazy loaded and no imports apart from
+the root ``import mypkg`` are required.
 
 
-    mypkg.SomeClass        # will be loaded from somemodule.py
-    mypkg.sub.OtherClass   # lazy-loaded from somemodule.py
+Including the code in your package
+--------------------------------------
 
-Note that you do not need to ``import mypkg.sub`` to access it.
-But of course you can write down an import like this::
+If you don't want to add a depdency to your package you 
+can copy the ``apipkg.py`` somewhere to your own package, 
+e.g. ``_mypkg/apipkg.py`` in the above example. 
 
-    from mypkg.sub import OtherClass
+Questions / contact
+-----------------------
 
-In order for the example to work you need to have referenced
-implementation module
+If you have questions you are welcome to 
 
+* join the #pylib channel on irc.freenode.net 
+* subscribe to the http://codespeak.net/mailman/listinfo/py-dev list. 
+* create an issue on http://bitbucket.org/hpk42/apipkg/issues
 
-Let's go to the Python console we can type::
-
-    >>> import mypkg
-    >>> mypkg.SomeClass
-    <class mypkg.__.somemodule.SomeClass at 0xb7dcd8cc>
-
-
-
-This will lead your package to only expose the names of all
-your implementation files that you explicitely
-specify.  In the above example 'name1' will
-become a Module instance where 'name2' is
-bound in its namespace to the 'name' object
-in the relative './path/to/file.py' python module.
-Note that you can also use a '.c' file in which
-case it will be compiled via distutils-facilities
-on the fly.
-
-
-It does this by providing a function that you can import
-and call at package `__init__.py`` time.  This function
-instruments Python's import system to make all python
-modules of the package accessible via a `__` import.
-
-
-and adds
-using your library classes a pleasure. provide
-a clean exported helps you to ``pkginit(exportdefs)``
-which you
-
-compatibility: CPython 2.4 till 3.1
-
+have fun, holger 

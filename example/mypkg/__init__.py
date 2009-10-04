@@ -1,9 +1,9 @@
 # mypkg/__init__.py
 
 import apipkg
-apipkg.init(__name__, {
-    'SomeClass': 'somemodule::SomeClass',
+apipkg.initpkg(__name__, {
+    'SomeClass': '_mypkg.somemodule:SomeClass',
     'sub': {
-        'OtherClass': 'somemodule::OtherClass',
+        'OtherClass': '_mypkg.somemodule:OtherClass',
     }
 })

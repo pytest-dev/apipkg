@@ -1,5 +1,5 @@
 """
-apipkg: control exported namespace of a python package.
+apipkg: namespace control and lazy-import mechanism.
 
 compatible to CPython 2.3 through to CPython 3.1, Jython, PyPy
 
@@ -18,13 +18,14 @@ from apipkg import __version__
 def main():
     setup(
         name='apipkg',
-        description='apipkg: control exported namespace of a python package',
-        long_description = __doc__,
+        description=
+        'apipkg: namespace control and lazy-import mechanism',
+        long_description = open('readme.txt').read(),
         version= __version__,
         url='http://bitbucket.org/hpk42/apipkg',
         license='MIT License',
         platforms=['unix', 'linux', 'osx', 'cygwin', 'win32'],
-        author='holger krekel and others',
+        author='holger krekel',
         author_email='holger at merlinux.eu',
         classifiers=[
             'Development Status :: 4 - Beta',

@@ -16,23 +16,25 @@ class TestRealModule:
         tfile = pkgdir.join('__init__.py')
         tfile.write(py.code.Source("""
             import apipkg
-            apipkg.init(__name__, {
+            apipkg.initpkg(__name__, {
                 'x': {
                     'module': {
-                        '__doc__': 'testmodule::__doc__',
-                        'mytest0': 'testmodule::mytest0',
-                        'mytest1': 'testmodule::mytest1',
-                        'MyTest': 'testmodule::MyTest',
+                        '__doc__': '_xyz.testmodule:__doc__',
+                        'mytest0': '_xyz.testmodule:mytest0',
+                        'mytest1': '_xyz.testmodule:mytest1',
+                        'MyTest':  '_xyz.testmodule:MyTest',
                     }
                 }
             }
             )
         """))
 
-        tfile = pkgdir.join('testmodule.py')
+        ipkgdir = cls.tmpdir.ensure("_xyz", dir=1)
+        tfile = ipkgdir.join('testmodule.py')
+        ipkgdir.ensure("__init__.py")
         tfile.write(py.code.Source("""
             'test module'
-            from realtest.__.othermodule import MyTest
+            from _xyz.othermodule import MyTest
 
             #__all__ = ['mytest0', 'mytest1', 'MyTest']
 
@@ -41,7 +43,7 @@ class TestRealModule:
             def mytest1():
                 pass
         """))
-        pkgdir.join("othermodule.py").write("class MyTest: pass")
+        ipkgdir.join("othermodule.py").write("class MyTest: pass")
 
     def setup_method(self, *args):
         # Unload the test modules before each test.
@@ -82,18 +84,6 @@ class TestRealModule:
         print (realtest.x.module.__map__)
         assert realtest.x.module.__doc__ == 'test module'
 
-    def test_realmodule_getimportname(self):
-        import realtest
-        pkg = realtest.__apipkg__
-        p = py.path.local(realtest.__file__).dirpath('testmodule.py')
-        s = pkg.getimportname(p)
-        assert s == "realtest.__.testmodule"
-        s = pkg.getimportname(str(p))
-        assert s == "realtest.__.testmodule"
-        s = pkg.getimportname(p.dirpath().dirpath())
-
-
-
 # alternate ideas for specifying package + preliminary code
 #
 def test_parsenamespace():
@@ -108,7 +98,7 @@ def test_parsenamespace():
                  'path': {'svnwc': '__.path.svnwc::WCCommandPath',
                           'local': '__.path.local::LocalPath'}
             }
-def test_parsenamespace_errors():
+def xtest_parsenamespace_errors():
     py.test.raises(ValueError, """
         parsenamespace('path.local xyz')
     """)
