@@ -3,7 +3,7 @@ Welcome to apipkg!
 
 With apipkg you can control the exported namespace of a
 python package and greatly reduce the number of imports for your users.
-It is a small pure python module that works on virtually all Python
+It is a `small pure python module`_ that works on virtually all Python
 versions, including CPython2.3 to Python3.1, Jython and PyPy.  It co-operates
 well with Python's ``help()`` system and common command line completion
 tools.  Usage is very simple: you can require 'apipkg' as a dependency
@@ -49,6 +49,7 @@ If you don't want to add a depdency to your package you
 can copy the `apipkg.py`_ somewhere to your own package, 
 e.g. ``_mypkg/apipkg.py`` in the above example. 
 
+.. _`small pure python module`:
 .. _`apipkg.py`: http://bitbucket.org/hpk42/apipkg/src/tip/apipkg.py
 
 Feedback? 
