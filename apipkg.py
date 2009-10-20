@@ -45,6 +45,8 @@ class ApiModule(ModuleType):
                 if name == '__doc__':
                     self.__doc__ = importobj(importspec)
                 else:
+                    if importspec[0] == '.':
+                        importspec = fullname + importspec
                     self.__map__[name] = importspec
 
     def __repr__(self):

@@ -1,7 +1,7 @@
 import types
 import sys
 import py
-
+import apipkg
 #
 # test support for importing modules
 #
@@ -125,4 +125,39 @@ def parsenamespace(spec):
             cur = cur[name]
         cur[apinames[-1]] = spec
     return ns
+
+
+def test_relative_import():
+    import email
+    api_email = apipkg.ApiModule('email', {'Message': '.message:Message'})
+    assert api_email.Message is email.message.Message
+
+def test_absolute_import():
+    import email
+    api_email = apipkg.ApiModule('email', {'Message':'email.message:Message'})
+    assert api_email.Message is email.message.Message
+
+def test_nested_absolute_imports():
+    import email
+    api_email = apipkg.ApiModule('email',{
+        'message2': {
+            'Message': 'email.message:Message',
+            },
+        })
+    # nesting is supposed to replace things in sys.modules
+    assert 'email.message2' in sys.modules
+
+
+def test_initpkg_no_replace(monkeypatch):
+    api = apipkg.ApiModule('email_no_replace', {})
+    monkeypatch.setitem(sys.modules, 'email_no_replace', api)
+    apipkg.initpkg('email_no_replace', {})
+    assert sys.modules['email_no_replace'] is api
+
+@py.test.mark.xfail
+def test_initpkg_do_replace(monkeypatch):
+    api = apipkg.ApiModule('email_replace', {})
+    monkeypatch.setitem(sys.modules, 'email_replace', api)
+    apipkg.initpkg('email_replace', {}, replace=True)
+    assert sys.modules['email_replace'] is not api
 
