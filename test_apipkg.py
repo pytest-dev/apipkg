@@ -154,3 +154,9 @@ def test_initpkg_do_replace(monkeypatch):
     apipkg.initpkg('email_replace', {}, replace=True)
     assert sys.modules['email_replace'] is not api
 
+def test_name_attribute():
+    api = apipkg.ApiModule('name_test', {
+        'subpkg': {},
+        })
+    assert api.__name__ == 'name_test'
+    assert api.subpkg.__name__ == 'name_test.subpkg'
