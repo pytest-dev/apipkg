@@ -10,13 +10,12 @@ from types import ModuleType
 
 __version__ = "1.0b1"
 
-def initpkg(pkgname, exportdefs):
-    """ initialize given package from the export definitions. """
-    pkgmodule = sys.modules[pkgname]
+def initpkg(pkgname, exportdefs, replace=False):
+    """ initialize given package from the export definitions.
+        replace it in sys.modules
+    """
     mod = ApiModule(pkgname, exportdefs)
-    for name, value in mod.__dict__.items():
-         if name[:2] != "__" or name == "__all__":
-            setattr(pkgmodule, name, value)
+    sys.modules[pkgname]  = mod
 
 def importobj(importspec):
     """ return object specified by importspec."""

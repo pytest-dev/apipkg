@@ -144,20 +144,13 @@ def test_nested_absolute_imports():
             'Message': 'email.message:Message',
             },
         })
-    # nesting is supposed to replace things in sys.modules
+    # nesting is supposed to put nested items into sys.modules
     assert 'email.message2' in sys.modules
 
-
-def test_initpkg_no_replace(monkeypatch):
-    api = apipkg.ApiModule('email_no_replace', {})
-    monkeypatch.setitem(sys.modules, 'email_no_replace', api)
-    apipkg.initpkg('email_no_replace', {})
-    assert sys.modules['email_no_replace'] is api
-
-@py.test.mark.xfail
 def test_initpkg_do_replace(monkeypatch):
     api = apipkg.ApiModule('email_replace', {})
     monkeypatch.setitem(sys.modules, 'email_replace', api)
+    # initpkg will also replace in sys.modules
     apipkg.initpkg('email_replace', {}, replace=True)
     assert sys.modules['email_replace'] is not api
 
