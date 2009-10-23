@@ -28,16 +28,12 @@ class ApiModule(ModuleType):
         self.__name__ = name
         self.__all__ = list(importspec)
         self.__map__ = {}
-        if parent:
-            fullname = parent.__fullname__ + "." + name
-            setattr(parent, name, self)
-        else:
-            fullname = name
-        self.__fullname__ = fullname
         for name, importspec in importspec.items():
             if isinstance(importspec, dict):
-                apimod = ApiModule(name, importspec, parent=self)
-                sys.modules[apimod.__fullname__] = apimod
+                package = '%s.%s'%(self.__name__, name)
+                apimod = ApiModule(package, importspec, parent=self)
+                sys.modules[package] = apimod
+                setattr(self, name, apimod)
             else:
                 if not importspec.count(":") == 1:
                     raise ValueError("invalid importspec %r" % (importspec,))
@@ -45,11 +41,11 @@ class ApiModule(ModuleType):
                     self.__doc__ = importobj(importspec)
                 else:
                     if importspec[0] == '.':
-                        importspec = fullname + importspec
+                        importspec = self.__name__ + importspec
                     self.__map__[name] = importspec
 
     def __repr__(self):
-        return '<ApiModule %r>' % (self.__fullname__,)
+        return '<ApiModule %r>' % (self.__name__,)
 
     def __getattr__(self, name):
         try:
