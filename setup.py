@@ -30,7 +30,7 @@ def main():
         classifiers=[
             'Development Status :: 4 - Beta',
             'Intended Audience :: Developers',
-            'License :: OSI Approved :: GNU General Public License (GPL)',
+            'License :: OSI Approved :: MIT License',
             'Operating System :: POSIX',
             'Operating System :: Microsoft :: Windows',
             'Operating System :: MacOS :: MacOS X',
