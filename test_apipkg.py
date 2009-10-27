@@ -84,6 +84,31 @@ class TestRealModule:
         print (realtest.x.module.__map__)
         assert realtest.x.module.__doc__ == 'test module'
 
+class TestScenarios:
+    def test_relative_import(self, monkeypatch, tmpdir):
+        pkgdir = tmpdir.mkdir("mymodule")
+        pkgdir.join('__init__.py').write(py.code.Source("""
+            import apipkg
+            apipkg.initpkg(__name__, {
+                'x': '.submod:x'
+            })
+        """))
+        pkgdir.join('submod.py').write("x=3\n")
+        monkeypatch.syspath_prepend(tmpdir)
+        import mymodule
+        assert isinstance(mymodule, apipkg.ApiModule)
+        assert mymodule.x == 3
+
+def xtest_nested_absolute_imports():
+    import email
+    api_email = apipkg.ApiModule('email',{
+        'message2': {
+            'Message': 'email.message:Message',
+            },
+        })
+    # nesting is supposed to put nested items into sys.modules
+    assert 'email.message2' in sys.modules
+
 # alternate ideas for specifying package + preliminary code
 #
 def test_parsenamespace():
@@ -93,7 +118,7 @@ def test_parsenamespace():
         test.raises   __.test.outcome::raises
     """
     d = parsenamespace(spec)
-    print d
+    print (d)
     assert d == {'test': {'raises': '__.test.outcome::raises'},
                  'path': {'svnwc': '__.path.svnwc::WCCommandPath',
                           'local': '__.path.local::LocalPath'}
@@ -126,33 +151,32 @@ def parsenamespace(spec):
         cur[apinames[-1]] = spec
     return ns
 
+def test_initpkg_replaces_sysmodules(monkeypatch):
+    mod = type(sys)('hello')
+    monkeypatch.setitem(sys.modules, 'hello', mod)
+    apipkg.initpkg('hello', {'x': 'os.path:abspath'})
+    newmod = sys.modules['hello']
+    assert newmod != mod
+    assert newmod.x == py.std.os.path.abspath
 
-def test_relative_import():
-    import email
-    api_email = apipkg.ApiModule('email', {'Message': '.message:Message'})
-    assert api_email.Message is email.message.Message
+def test_initpkg_transfers_version_and_file(monkeypatch):
+    mod = type(sys)('hello')
+    mod.__version__ = 10
+    mod.__file__ = "hello.py"
+    monkeypatch.setitem(sys.modules, 'hello', mod)
+    apipkg.initpkg('hello', {})
+    newmod = sys.modules['hello']
+    assert newmod != mod
+    assert newmod.__file__ == mod.__file__
+    assert newmod.__version__ == mod.__version__
 
-def test_absolute_import():
-    import email
-    api_email = apipkg.ApiModule('email', {'Message':'email.message:Message'})
-    assert api_email.Message is email.message.Message
-
-def test_nested_absolute_imports():
-    import email
-    api_email = apipkg.ApiModule('email',{
-        'message2': {
-            'Message': 'email.message:Message',
-            },
-        })
-    # nesting is supposed to put nested items into sys.modules
-    assert 'email.message2' in sys.modules
-
-def test_initpkg_do_replace(monkeypatch):
-    api = apipkg.ApiModule('email_replace', {})
-    monkeypatch.setitem(sys.modules, 'email_replace', api)
-    # initpkg will also replace in sys.modules
-    apipkg.initpkg('email_replace', {}, replace=True)
-    assert sys.modules['email_replace'] is not api
+def test_initpkg_defaults(monkeypatch):
+    mod = type(sys)('hello')
+    monkeypatch.setitem(sys.modules, 'hello', mod)
+    apipkg.initpkg('hello', {})
+    newmod = sys.modules['hello']
+    assert newmod.__file__ == None
+    assert newmod.__version__ == None
 
 def test_name_attribute():
     api = apipkg.ApiModule('name_test', {
