@@ -49,12 +49,13 @@ class ApiModule(ModuleType):
 
     def __getattr__(self, name):
         try:
-            modpath, attrname = self.__map__.pop(name)
+            modpath, attrname = self.__map__[name]
         except KeyError:
             raise AttributeError(name)
         else:
             result = importobj(modpath, attrname)
             setattr(self, name, result)
+            del self.__map__[name]
             return result
 
     def __dict__(self):

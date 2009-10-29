@@ -190,3 +190,21 @@ def test_name_attribute():
         })
     assert api.__name__ == 'name_test'
     assert api.subpkg.__name__ == 'name_test.subpkg'
+
+def test_error_loading_one_element(monkeypatch, tmpdir):
+    pkgdir = tmpdir.mkdir("errorloading1")
+    pkgdir.join('__init__.py').write(py.code.Source("""
+        import apipkg
+        apipkg.initpkg(__name__, exportdefs={
+            'x': '.notexists:x',
+            'y': '.submod:y'
+            },
+        )
+    """))
+    pkgdir.join('submod.py').write("y=0")
+    monkeypatch.syspath_prepend(tmpdir)
+    import errorloading1
+    assert isinstance(errorloading1, apipkg.ApiModule)
+    assert errorloading1.y == 0
+    py.test.raises(ImportError, 'errorloading1.x')
+    py.test.raises(ImportError, 'errorloading1.x')
