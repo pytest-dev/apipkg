@@ -89,15 +89,21 @@ class TestScenarios:
         pkgdir = tmpdir.mkdir("mymodule")
         pkgdir.join('__init__.py').write(py.code.Source("""
             import apipkg
-            apipkg.initpkg(__name__, {
-                'x': '.submod:x'
+            apipkg.initpkg(__name__, exportdefs={
+                '__doc__': '.submod:maindoc',
+                'x': '.submod:x',
+                'y': {
+                    'z': '.submod:x'
+                },
             })
         """))
-        pkgdir.join('submod.py').write("x=3\n")
+        pkgdir.join('submod.py').write("x=3\nmaindoc='hello'")
         monkeypatch.syspath_prepend(tmpdir)
         import mymodule
         assert isinstance(mymodule, apipkg.ApiModule)
         assert mymodule.x == 3
+        assert mymodule.__doc__ == 'hello'
+        assert mymodule.y.z == 3
 
 def xtest_nested_absolute_imports():
     import email
