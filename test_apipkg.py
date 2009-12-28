@@ -208,3 +208,31 @@ def test_error_loading_one_element(monkeypatch, tmpdir):
     assert errorloading1.y == 0
     py.test.raises(ImportError, 'errorloading1.x')
     py.test.raises(ImportError, 'errorloading1.x')
+
+def test_onfirstaccess(monkeypatch):
+    mod = type(sys)('hello')
+    monkeypatch.setitem(sys.modules, 'hello', mod)
+    l = []
+    apipkg.initpkg('hello', {
+        '__onfirstaccess__': lambda: l.append(1),
+        'world': 'sys:executable',
+        'world2': 'sys:executable',
+    })
+    hello = sys.modules['hello']
+    assert hello.world  == sys.executable
+    assert len(l) == 1
+    assert hello.world == sys.executable
+    assert len(l) == 1
+
+def test_onfirstaccess__dict__(monkeypatch):
+    mod = type(sys)('hello')
+    monkeypatch.setitem(sys.modules, 'hello', mod)
+    l = []
+    apipkg.initpkg('hello', {
+        '__onfirstaccess__': lambda: l.append(1),
+    })
+    hello = sys.modules['hello']
+    hello.__dict__
+    assert len(l) == 1
+    hello.__dict__
+    assert len(l) == 1

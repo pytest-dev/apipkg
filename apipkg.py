@@ -8,7 +8,7 @@ see http://pypi.python.org/pypi/apipkg
 import sys
 from types import ModuleType
 
-__version__ = "1.0b2"
+__version__ = "1.0b3"
 
 def initpkg(pkgname, exportdefs):
     """ initialize given package from the export definitions. """
@@ -35,6 +35,8 @@ class ApiModule(ModuleType):
                 apimod = ApiModule(subname, importspec, implprefix)
                 sys.modules[subname] = apimod
                 setattr(self, name, apimod)
+            elif name == '__onfirstaccess__':
+                self.__map__[name] = importspec
             else:
                 modpath, attrname = importspec.split(':')
                 if modpath[0] == '.':
@@ -45,9 +47,23 @@ class ApiModule(ModuleType):
                     self.__map__[name] = (modpath, attrname)
 
     def __repr__(self):
+        l = []
+        if hasattr(self, '__version__'):
+            l.append("version=" + repr(self.__version__))
+        if hasattr(self, '__file__'):
+            l.append('from ' + repr(self.__file__))
+        if l:
+            return '<ApiModule %r %s>' % (self.__name__, " ".join(l))
         return '<ApiModule %r>' % (self.__name__,)
 
     def __getattr__(self, name):
+        try:
+            func = self.__map__.pop('__onfirstaccess__')
+        except KeyError:
+            pass
+        else:
+            if func:
+                func()
         try:
             modpath, attrname = self.__map__[name]
         except KeyError:

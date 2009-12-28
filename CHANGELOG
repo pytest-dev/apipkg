@@ -1,0 +1,5 @@
+1.0.0b3 (compared to 1.0.0b2)
+------------------------------------
+
+- added special attribute __onfirstaccess__ whose value will 
+  be called on the first attribute access to the apimodule
