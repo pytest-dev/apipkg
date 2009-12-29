@@ -229,8 +229,9 @@ def test_onfirstaccess(tmpdir, monkeypatch):
     assert isinstance(firstaccess, apipkg.ApiModule)
     assert len(firstaccess.l) == 1
     assert len(firstaccess.l) == 1
+    assert '__onfirstaccess__' not in firstaccess.__all__
 
-@py.test.mark.multi(mode=['attr', 'dict'])
+@py.test.mark.multi(mode=['attr', 'dict', 'onfirst'])
 def test_onfirstaccess_setsnewattr(tmpdir, monkeypatch, mode):
     pkgname = tmpdir.basename.replace("-", "")
     pkgdir = tmpdir.mkdir(pkgname)
@@ -254,4 +255,7 @@ def test_onfirstaccess_setsnewattr(tmpdir, monkeypatch, mode):
     elif mode == "dict":
         print mod.__dict__.keys()
         assert 'newattr' in mod.__dict__
+    elif mode == "onfirst":
+        assert not hasattr(mod, '__onfirstaccess__')
+        assert not hasattr(mod, '__onfirstaccess__')
     assert '__onfirstaccess__' not in vars(mod)
