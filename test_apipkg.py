@@ -209,30 +209,49 @@ def test_error_loading_one_element(monkeypatch, tmpdir):
     py.test.raises(ImportError, 'errorloading1.x')
     py.test.raises(ImportError, 'errorloading1.x')
 
-def test_onfirstaccess(monkeypatch):
-    mod = type(sys)('hello')
-    monkeypatch.setitem(sys.modules, 'hello', mod)
-    l = []
-    apipkg.initpkg('hello', {
-        '__onfirstaccess__': lambda: l.append(1),
-        'world': 'sys:executable',
-        'world2': 'sys:executable',
-    })
-    hello = sys.modules['hello']
-    assert hello.world  == sys.executable
-    assert len(l) == 1
-    assert hello.world == sys.executable
-    assert len(l) == 1
+def test_onfirstaccess(tmpdir, monkeypatch):
+    pkgdir = tmpdir.mkdir("firstaccess")
+    pkgdir.join('__init__.py').write(py.code.Source("""
+        import apipkg
+        apipkg.initpkg(__name__, exportdefs={
+            '__onfirstaccess__': '.submod:init',
+            'l': '.submod:l',
+            },
+        )
+    """))
+    pkgdir.join('submod.py').write(py.code.Source("""
+        l = []
+        def init(): 
+            l.append(1)
+    """))
+    monkeypatch.syspath_prepend(tmpdir)
+    import firstaccess
+    assert isinstance(firstaccess, apipkg.ApiModule)
+    assert len(firstaccess.l) == 1
+    assert len(firstaccess.l) == 1
 
-def test_onfirstaccess__dict__(monkeypatch):
-    mod = type(sys)('hello')
-    monkeypatch.setitem(sys.modules, 'hello', mod)
-    l = []
-    apipkg.initpkg('hello', {
-        '__onfirstaccess__': lambda: l.append(1),
-    })
-    hello = sys.modules['hello']
-    hello.__dict__
-    assert len(l) == 1
-    hello.__dict__
-    assert len(l) == 1
+@py.test.mark.multi(mode=['attr', 'dict'])
+def test_onfirstaccess_setsnewattr(tmpdir, monkeypatch, mode):
+    pkgname = tmpdir.basename.replace("-", "")
+    pkgdir = tmpdir.mkdir(pkgname)
+    pkgdir.join('__init__.py').write(py.code.Source("""
+        import apipkg
+        apipkg.initpkg(__name__, exportdefs={
+            '__onfirstaccess__': '.submod:init',
+            },
+        )
+    """))
+    pkgdir.join('submod.py').write(py.code.Source("""
+        def init(): 
+            import %s as pkg
+            pkg.newattr = 42 
+    """ % pkgname))
+    monkeypatch.syspath_prepend(tmpdir)
+    mod = __import__(pkgname)
+    assert isinstance(mod, apipkg.ApiModule)
+    if mode == 'attr':
+        assert mod.newattr == 42
+    elif mode == "dict":
+        print mod.__dict__.keys()
+        assert 'newattr' in mod.__dict__
+    assert '__onfirstaccess__' not in vars(mod)
