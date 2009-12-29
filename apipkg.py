@@ -35,8 +35,6 @@ class ApiModule(ModuleType):
                 apimod = ApiModule(subname, importspec, implprefix)
                 sys.modules[subname] = apimod
                 setattr(self, name, apimod)
-            elif name == '__onfirstaccess__':
-                self.__map__[name] = importspec
             else:
                 modpath, attrname = importspec.split(':')
                 if modpath[0] == '.':
@@ -57,16 +55,17 @@ class ApiModule(ModuleType):
         return '<ApiModule %r>' % (self.__name__,)
 
     def __getattr__(self, name):
-        try:
-            func = self.__map__.pop('__onfirstaccess__')
-        except KeyError:
-            pass
-        else:
-            if func:
-                func()
+        target = None
+        if '__onfirstaccess__' in self.__map__:
+            target = self.__map__.pop('__onfirstaccess__')
+            importobj(*target)()
+            if name == "__onfirstaccess__":
+                return target
         try:
             modpath, attrname = self.__map__[name]
         except KeyError:
+            if target is not None: # retry, onfirstaccess might have set attrs
+                return getattr(self, name)
             raise AttributeError(name)
         else:
             result = importobj(modpath, attrname)
