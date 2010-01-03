@@ -165,16 +165,18 @@ def test_initpkg_replaces_sysmodules(monkeypatch):
     assert newmod != mod
     assert newmod.x == py.std.os.path.abspath
 
-def test_initpkg_transfers_version_and_file(monkeypatch):
+def test_initpkg_transfers_attrs(monkeypatch):
     mod = type(sys)('hello')
     mod.__version__ = 10
     mod.__file__ = "hello.py"
+    mod.__loader__ = "loader"
     monkeypatch.setitem(sys.modules, 'hello', mod)
     apipkg.initpkg('hello', {})
     newmod = sys.modules['hello']
     assert newmod != mod
     assert newmod.__file__ == mod.__file__
     assert newmod.__version__ == mod.__version__
+    assert newmod.__loader__ == mod.__loader__
 
 def test_initpkg_defaults(monkeypatch):
     mod = type(sys)('hello')
