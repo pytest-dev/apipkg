@@ -259,3 +259,14 @@ def test_onfirstaccess_setsnewattr(tmpdir, monkeypatch, mode):
         assert not hasattr(mod, '__onfirstaccess__')
         assert not hasattr(mod, '__onfirstaccess__')
     assert '__onfirstaccess__' not in vars(mod)
+
+def test_bpython_getattr_override(tmpdir, monkeypatch):
+    def patchgetattr(self, name):
+        raise AttributeError(name)
+    monkeypatch.setattr(apipkg.ApiModule, '__getattr__', patchgetattr)
+    api = apipkg.ApiModule('bpy', {
+        'abspath': 'os.path:abspath',
+        })
+    d = api.__dict__
+    assert 'abspath' in d
+    
