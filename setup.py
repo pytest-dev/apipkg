@@ -20,7 +20,7 @@ def main():
         name='apipkg',
         description=
         'apipkg: namespace control and lazy-import mechanism',
-        long_description = open('readme.txt').read(),
+        long_description = open('README.txt').read(),
         version= __version__,
         url='http://bitbucket.org/hpk42/apipkg',
         license='MIT License',
