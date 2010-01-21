@@ -105,6 +105,24 @@ class TestScenarios:
         assert mymodule.__doc__ == 'hello'
         assert mymodule.y.z == 3
 
+    def test_recursive_import(self, monkeypatch, tmpdir):
+        pkgdir = tmpdir.mkdir("recmodule")
+        pkgdir.join('__init__.py').write(py.code.Source("""
+            import apipkg
+            apipkg.initpkg(__name__, exportdefs={
+                'some': '.submod:someclass',
+            })
+        """))
+        pkgdir.join('submod.py').write(py.code.Source("""
+            import recmodule 
+            class someclass: pass
+            print (recmodule.__dict__)
+        """))
+        monkeypatch.syspath_prepend(tmpdir)
+        import recmodule 
+        assert isinstance(recmodule, apipkg.ApiModule)
+        assert recmodule.some.__name__ == "someclass"
+
 def xtest_nested_absolute_imports():
     import email
     api_email = apipkg.ApiModule('email',{
