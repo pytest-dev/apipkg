@@ -196,13 +196,24 @@ def test_initpkg_transfers_attrs(monkeypatch):
     assert newmod.__version__ == mod.__version__
     assert newmod.__loader__ == mod.__loader__
 
+def test_initpkg_not_transfers_not_existing_attrs(monkeypatch):
+    mod = type(sys)('hello')
+    mod.__file__ = "hello.py"
+    monkeypatch.setitem(sys.modules, 'hello', mod)
+    apipkg.initpkg('hello', {})
+    newmod = sys.modules['hello']
+    assert newmod != mod
+    assert newmod.__file__ == mod.__file__
+    assert not hasattr(newmod, '__loader__')
+    assert not hasattr(newmod, '__path__')
+
 def test_initpkg_defaults(monkeypatch):
     mod = type(sys)('hello')
     monkeypatch.setitem(sys.modules, 'hello', mod)
     apipkg.initpkg('hello', {})
     newmod = sys.modules['hello']
     assert newmod.__file__ == None
-    assert newmod.__version__ == None
+    assert newmod.__version__ == '0'
 
 def test_name_attribute():
     api = apipkg.ApiModule('name_test', {

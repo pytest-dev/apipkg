@@ -2,6 +2,8 @@
 ----------------------------------------
 
 - fix recursive import issue resulting in a superflous KeyError 
+- default to __version__ '0' and not set __loader__ or __path__ at all if it
+  doesn't exist on the underlying init module
 
 1.0.0b5
 ----------------------------------------
