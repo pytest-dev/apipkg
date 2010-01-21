@@ -15,9 +15,10 @@ def initpkg(pkgname, exportdefs):
     mod = ApiModule(pkgname, exportdefs, implprefix=pkgname)
     oldmod = sys.modules[pkgname]
     mod.__file__ = getattr(oldmod, '__file__', None)
-    mod.__version__ = getattr(oldmod, '__version__', None)
-    mod.__path__ = getattr(oldmod, '__path__', None)
-    mod.__loader__ = getattr(oldmod, '__loader__', None)
+    mod.__version__ = getattr(oldmod, '__version__', '0')
+    for name in ('__path__', '__loader__'):
+        if hasattr(oldmod, name):
+            setattr(mod, name, getattr(oldmod, name))
     sys.modules[pkgname]  = mod
 
 def importobj(modpath, attrname):
