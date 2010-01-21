@@ -1,5 +1,18 @@
+1.0.0b6
+----------------------------------------
+
+- fix recursive import issue resulting in a superflous KeyError 
+
+1.0.0b5
+----------------------------------------
+
+- fixed MANIFEST.in
+- also transfer __loader__ attribute (thanks Ralf Schmitt) 
+- compat fix for BPython 
+
 1.0.0b3 (compared to 1.0.0b2)
 ------------------------------------
 
 - added special __onfirstaccess__ attribute whose value will 
   be called on the first attribute access of an apimodule. 
+

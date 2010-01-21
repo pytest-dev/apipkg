@@ -8,7 +8,7 @@ see http://pypi.python.org/pypi/apipkg
 import sys
 from types import ModuleType
 
-__version__ = "1.0b5"
+__version__ = "1.0b6"
 
 def initpkg(pkgname, exportdefs):
     """ initialize given package from the export definitions. """
@@ -71,7 +71,10 @@ class ApiModule(ModuleType):
         else:
             result = importobj(modpath, attrname)
             setattr(self, name, result)
-            del self.__map__[name]
+            try:
+                del self.__map__[name]
+            except KeyError:
+                pass # in a recursive-import situation a double-del can happen
             return result
 
     __getattr__ = __makeattr
