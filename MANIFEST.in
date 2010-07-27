@@ -1,0 +1,6 @@
+include CHANGELOG
+include README.txt
+include setup.py
+include test_apipkg.py
+prune .svn 
+prune .hg 
