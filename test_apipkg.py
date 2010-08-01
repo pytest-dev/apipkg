@@ -2,6 +2,7 @@ import types
 import sys
 import py
 import apipkg
+import subprocess
 #
 # test support for importing modules
 #
@@ -192,7 +193,7 @@ def test_initpkg_transfers_attrs(monkeypatch):
     apipkg.initpkg('hello', {})
     newmod = sys.modules['hello']
     assert newmod != mod
-    assert newmod.__file__ == mod.__file__
+    assert newmod.__file__ == py.path.local(mod.__file__)
     assert newmod.__version__ == mod.__version__
     assert newmod.__loader__ == mod.__loader__
 
@@ -203,7 +204,7 @@ def test_initpkg_not_transfers_not_existing_attrs(monkeypatch):
     apipkg.initpkg('hello', {})
     newmod = sys.modules['hello']
     assert newmod != mod
-    assert newmod.__file__ == mod.__file__
+    assert newmod.__file__ == py.path.local(mod.__file__)
     assert not hasattr(newmod, '__loader__')
     assert not hasattr(newmod, '__path__')
 
@@ -284,7 +285,7 @@ def test_onfirstaccess_setsnewattr(tmpdir, monkeypatch, mode):
     if mode == 'attr':
         assert mod.newattr == 42
     elif mode == "dict":
-        print mod.__dict__.keys()
+        print (list(mod.__dict__.keys()))
         assert 'newattr' in mod.__dict__
     elif mode == "onfirst":
         assert not hasattr(mod, '__onfirstaccess__')
@@ -300,4 +301,36 @@ def test_bpython_getattr_override(tmpdir, monkeypatch):
         })
     d = api.__dict__
     assert 'abspath' in d
-    
+
+
+
+
+def test_chdir_with_relative_imports_shouldnt_break_lazy_loading(tmpdir):
+    pkg = tmpdir.mkdir('pkg')
+    messy = tmpdir.mkdir('messy')
+    pkg.join('__init__.py').write(py.code.Source("""
+        import apipkg
+        apipkg.initpkg(__name__, {
+            'test': '.sub:test',
+        })
+    """))
+    pkg.join('sub.py').write('def test(): pass')
+
+    tmpdir.join('main.py').write(py.code.Source("""
+        import os
+        import sys
+        sys.path.insert(0, '')
+        import pkg
+        import py
+        py.builtin.print_(pkg.__path__, file=sys.stderr)
+        py.builtin.print_(pkg.__file__, file=sys.stderr)
+        py.builtin.print_(pkg, file=sys.stderr)
+        os.chdir('messy')
+        pkg.test()
+    """))
+    res = subprocess.call(
+        ['python', 'main.py'],
+        cwd=str(tmpdir),
+    )
+    assert res == 0
+

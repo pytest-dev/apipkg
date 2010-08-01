@@ -5,20 +5,26 @@ see http://pypi.python.org/pypi/apipkg
 
 (c) holger krekel, 2009 - MIT license
 """
+import os
 import sys
 from types import ModuleType
 
-__version__ = "1.0b6"
+__version__ = "1.0b7"
 
 def initpkg(pkgname, exportdefs):
     """ initialize given package from the export definitions. """
     mod = ApiModule(pkgname, exportdefs, implprefix=pkgname)
     oldmod = sys.modules[pkgname]
-    mod.__file__ = getattr(oldmod, '__file__', None)
+    file = getattr(oldmod, '__file__', None)
+    if file:
+        file = os.path.abspath(file)
+    mod.__file__ = file
     mod.__version__ = getattr(oldmod, '__version__', '0')
-    for name in ('__path__', '__loader__'):
-        if hasattr(oldmod, name):
-            setattr(mod, name, getattr(oldmod, name))
+    if hasattr(oldmod, '__loader__'):
+        mod.__loader__ = oldmod.__loader__
+    if hasattr(oldmod, '__path__'):
+        mod.__path__ = [os.path.abspath(p) for p in oldmod.__path__]
+
     sys.modules[pkgname]  = mod
 
 def importobj(modpath, attrname):

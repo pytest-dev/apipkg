@@ -1,3 +1,9 @@
+1.0.0b7
+----------------------------------------
+
+- make apipkg memorize the absolute path where a package starts
+  importing so that subsequent chdir + imports won't break. 
+
 1.0.0b6
 ----------------------------------------
 
