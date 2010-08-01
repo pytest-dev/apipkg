@@ -8,6 +8,8 @@ syntax:glob
 *.html
 *.class
 
+.tox
+
 build
 dist
 apipkg.egg-info
