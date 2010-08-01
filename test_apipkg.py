@@ -2,6 +2,7 @@ import types
 import sys
 import py
 import apipkg
+import subprocess
 #
 # test support for importing modules
 #
@@ -305,7 +306,6 @@ def test_bpython_getattr_override(tmpdir, monkeypatch):
 
 
 def test_chdir_with_relative_imports_shouldnt_break_lazy_loading(tmpdir):
-    execnet = py.test.importorskip('execnet')
     pkg = tmpdir.mkdir('pkg')
     messy = tmpdir.mkdir('messy')
     pkg.join('__init__.py').write(py.code.Source("""
@@ -315,21 +315,22 @@ def test_chdir_with_relative_imports_shouldnt_break_lazy_loading(tmpdir):
         })
     """))
     pkg.join('sub.py').write('def test(): pass')
-    gw = execnet.makegateway()
 
-    def remote(channel, pkg, mess):
+    tmpdir.join('main.py').write(py.code.Source("""
         import os
         import sys
         sys.path.insert(0, '')
-        os.chdir(pkg)
         import pkg
         import py
         py.builtin.print_(pkg.__path__, file=sys.stderr)
         py.builtin.print_(pkg.__file__, file=sys.stderr)
         py.builtin.print_(pkg, file=sys.stderr)
-        os.chdir(mess)
+        os.chdir('messy')
         pkg.test()
-    ch = gw.remote_exec(remote, pkg=str(tmpdir), mess=str(messy))
-    ch.waitclose()
-
+    """))
+    res = subprocess.call(
+        ['python', 'main.py'],
+        cwd=str(tmpdir),
+    )
+    assert res == 0
 
