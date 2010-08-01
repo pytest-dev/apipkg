@@ -331,6 +331,9 @@ def test_chdir_with_relative_imports_shouldnt_break_lazy_loading(tmpdir):
     res = subprocess.call(
         ['python', 'main.py'],
         cwd=str(tmpdir),
+        env={
+            'PYTHONPATH': str(py.path.local(__file__).dirpath()),
+        },
     )
     assert res == 0
 
