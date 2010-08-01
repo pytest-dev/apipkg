@@ -192,7 +192,7 @@ def test_initpkg_transfers_attrs(monkeypatch):
     apipkg.initpkg('hello', {})
     newmod = sys.modules['hello']
     assert newmod != mod
-    assert newmod.__file__ == mod.__file__
+    assert newmod.__file__ == py.path.local(mod.__file__)
     assert newmod.__version__ == mod.__version__
     assert newmod.__loader__ == mod.__loader__
 
@@ -203,7 +203,7 @@ def test_initpkg_not_transfers_not_existing_attrs(monkeypatch):
     apipkg.initpkg('hello', {})
     newmod = sys.modules['hello']
     assert newmod != mod
-    assert newmod.__file__ == mod.__file__
+    assert newmod.__file__ == py.path.local(mod.__file__)
     assert not hasattr(newmod, '__loader__')
     assert not hasattr(newmod, '__path__')
 
@@ -300,4 +300,36 @@ def test_bpython_getattr_override(tmpdir, monkeypatch):
         })
     d = api.__dict__
     assert 'abspath' in d
-    
+
+
+
+
+def test_chdir_with_relative_imports_shouldnt_break_lazy_loading(tmpdir):
+    execnet = py.test.importorskip('execnet')
+    pkg = tmpdir.mkdir('pkg')
+    messy = tmpdir.mkdir('messy')
+    pkg.join('__init__.py').write(py.code.Source("""
+        import apipkg
+        apipkg.initpkg(__name__, {
+            'test': '.sub:test',
+        })
+    """))
+    pkg.join('sub.py').write('def test(): pass')
+    gw = execnet.makegateway()
+
+    def remote(channel, pkg, mess):
+        import os
+        import sys
+        sys.path.insert(0, '')
+        os.chdir(pkg)
+        import pkg
+        import py
+        py.builtin.print_(pkg.__path__, file=sys.stderr)
+        py.builtin.print_(pkg.__file__, file=sys.stderr)
+        py.builtin.print_(pkg, file=sys.stderr)
+        os.chdir(mess)
+        pkg.test()
+    ch = gw.remote_exec(remote, pkg=str(tmpdir), mess=str(messy))
+    ch.waitclose()
+
+
