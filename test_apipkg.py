@@ -346,3 +346,15 @@ def test_chdir_with_relative_imports_shouldnt_break_lazy_loading(tmpdir):
     )
     assert res == 0
 
+
+def test_dotted_name_lookup(tmpdir, monkeypatch):
+    pkgdir = tmpdir.mkdir("dotted_name_lookup")
+    pkgdir.join('__init__.py').write(py.code.Source("""
+        import apipkg
+        apipkg.initpkg(__name__, dict(fromkeys='UserDict:UserDict.fromkeys'))
+    """))
+    monkeypatch.syspath_prepend(tmpdir)
+    import dotted_name_lookup
+    d = dotted_name_lookup.fromkeys(["a", "b"])
+    print d
+    assert d.keys() == ["a", "b"]
