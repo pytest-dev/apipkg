@@ -1,10 +1,13 @@
-1.0.0b7
+1.0
 ----------------------------------------
 
 - make apipkg memorize the absolute path where a package starts
   importing so that subsequent chdir + imports won't break. 
 
 - allow to alias modules
+
+- allow to use dotted names in alias specifications (thanks Ralf
+  Schmitt).
 
 1.0.0b6
 ----------------------------------------
