@@ -124,6 +124,18 @@ class TestScenarios:
         assert isinstance(recmodule, apipkg.ApiModule)
         assert recmodule.some.__name__ == "someclass"
 
+    def test_module_alias_import(self, monkeypatch, tmpdir):
+        pkgdir = tmpdir.mkdir("aliasimport")
+        pkgdir.join('__init__.py').write(py.code.Source("""
+            import apipkg
+            apipkg.initpkg(__name__, exportdefs={
+                'some': 'os.path',
+            })
+        """))
+        monkeypatch.syspath_prepend(tmpdir)
+        import aliasimport
+        assert aliasimport.some is py.std.os.path
+
 def xtest_nested_absolute_imports():
     import email
     api_email = apipkg.ApiModule('email',{
