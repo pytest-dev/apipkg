@@ -351,10 +351,8 @@ def test_dotted_name_lookup(tmpdir, monkeypatch):
     pkgdir = tmpdir.mkdir("dotted_name_lookup")
     pkgdir.join('__init__.py').write(py.code.Source("""
         import apipkg
-        apipkg.initpkg(__name__, dict(fromkeys='UserDict:UserDict.fromkeys'))
+        apipkg.initpkg(__name__, dict(abs='os:path.abspath'))
     """))
     monkeypatch.syspath_prepend(tmpdir)
     import dotted_name_lookup
-    d = dotted_name_lookup.fromkeys(["a", "b"])
-    print d
-    assert d.keys() == ["a", "b"]
+    assert dotted_name_lookup.abs == py.std.os.path.abspath
