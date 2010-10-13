@@ -4,6 +4,8 @@
 - make apipkg memorize the absolute path where a package starts
   importing so that subsequent chdir + imports won't break. 
 
+- allow to alias modules
+
 1.0.0b6
 ----------------------------------------
 
