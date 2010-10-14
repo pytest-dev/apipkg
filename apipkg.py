@@ -24,6 +24,8 @@ def initpkg(pkgname, exportdefs, attr=dict()):
         d['__loader__'] = oldmod.__loader__
     if hasattr(oldmod, '__path__'):
         d['__path__'] = [os.path.abspath(p) for p in oldmod.__path__]
+    if hasattr(oldmod, '__doc__'):
+        d['__doc__'] = oldmod.__doc__
     d.update(attr)
     oldmod.__dict__.update(d)
     mod = ApiModule(pkgname, exportdefs, implprefix=pkgname, attr=d)
