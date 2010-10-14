@@ -356,3 +356,13 @@ def test_dotted_name_lookup(tmpdir, monkeypatch):
     monkeypatch.syspath_prepend(tmpdir)
     import dotted_name_lookup
     assert dotted_name_lookup.abs == py.std.os.path.abspath
+
+def test_extra_attributes(tmpdir, monkeypatch):
+    pkgdir = tmpdir.mkdir("extra_attributes")
+    pkgdir.join('__init__.py').write(py.code.Source("""
+        import apipkg
+        apipkg.initpkg(__name__, dict(abs='os:path.abspath'), dict(foo='bar'))
+    """))
+    monkeypatch.syspath_prepend(tmpdir)
+    import extra_attributes
+    assert extra_attributes.foo == 'bar'
