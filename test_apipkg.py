@@ -201,6 +201,7 @@ def test_initpkg_transfers_attrs(monkeypatch):
     mod.__version__ = 10
     mod.__file__ = "hello.py"
     mod.__loader__ = "loader"
+    mod.__doc__ = "this is the documentation"
     monkeypatch.setitem(sys.modules, 'hello', mod)
     apipkg.initpkg('hello', {})
     newmod = sys.modules['hello']
@@ -208,6 +209,16 @@ def test_initpkg_transfers_attrs(monkeypatch):
     assert newmod.__file__ == py.path.local(mod.__file__)
     assert newmod.__version__ == mod.__version__
     assert newmod.__loader__ == mod.__loader__
+    assert newmod.__doc__ == mod.__doc__
+
+def test_initpkg_not_overwrite_exportdefs(monkeypatch):
+    mod = type(sys)('hello')
+    mod.__doc__ = "this is the documentation"
+    monkeypatch.setitem(sys.modules, 'hello', mod)
+    apipkg.initpkg('hello', {"__doc__": "sys:__doc__"})
+    newmod = sys.modules['hello']
+    assert newmod != mod
+    assert newmod.__doc__ == sys.__doc__
 
 def test_initpkg_not_transfers_not_existing_attrs(monkeypatch):
     mod = type(sys)('hello')
