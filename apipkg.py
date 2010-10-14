@@ -9,7 +9,7 @@ import os
 import sys
 from types import ModuleType
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 def initpkg(pkgname, exportdefs, attr=dict()):
     """ initialize given package from the export definitions. """
@@ -19,7 +19,8 @@ def initpkg(pkgname, exportdefs, attr=dict()):
     if f:
         f = os.path.abspath(f)
     d['__file__'] = f
-    d['__version__'] = getattr(oldmod, '__version__', '0')
+    if hasattr(oldmod, '__version__'):
+        d['__version__'] = oldmod.__version__
     if hasattr(oldmod, '__loader__'):
         d['__loader__'] = oldmod.__loader__
     if hasattr(oldmod, '__path__'):

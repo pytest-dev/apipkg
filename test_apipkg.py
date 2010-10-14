@@ -237,7 +237,7 @@ def test_initpkg_defaults(monkeypatch):
     apipkg.initpkg('hello', {})
     newmod = sys.modules['hello']
     assert newmod.__file__ == None
-    assert newmod.__version__ == '0'
+    assert not hasattr(newmod, '__version__')
 
 def test_name_attribute():
     api = apipkg.ApiModule('name_test', {
