@@ -327,6 +327,7 @@ def test_chdir_with_relative_imports_shouldnt_break_lazy_loading(tmpdir):
         py.builtin.print_(pkg, file=sys.stderr)
         os.chdir('messy')
         pkg.test()
+        assert os.path.isabs(pkg.sub.__file__), pkg.sub.__file__
     """))
     res = subprocess.call(
         ['python', 'main.py'],
