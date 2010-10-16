@@ -329,6 +329,7 @@ def test_bpython_getattr_override(tmpdir, monkeypatch):
 
 
 def test_chdir_with_relative_imports_shouldnt_break_lazy_loading(tmpdir):
+    tmpdir.join('apipkg.py').write(py.code.Source(apipkg))
     pkg = tmpdir.mkdir('pkg')
     messy = tmpdir.mkdir('messy')
     pkg.join('__init__.py').write(py.code.Source("""
@@ -345,6 +346,7 @@ def test_chdir_with_relative_imports_shouldnt_break_lazy_loading(tmpdir):
         sys.path.insert(0, '')
         import pkg
         import py
+        print(py.__file__)
         py.builtin.print_(pkg.__path__, file=sys.stderr)
         py.builtin.print_(pkg.__file__, file=sys.stderr)
         py.builtin.print_(pkg, file=sys.stderr)
@@ -353,11 +355,8 @@ def test_chdir_with_relative_imports_shouldnt_break_lazy_loading(tmpdir):
         assert os.path.isabs(pkg.sub.__file__), pkg.sub.__file__
     """))
     res = subprocess.call(
-        ['python', 'main.py'],
+        [py.std.sys.executable, 'main.py'],
         cwd=str(tmpdir),
-        env={
-            'PYTHONPATH': str(py.path.local(__file__).dirpath()),
-        },
     )
     assert res == 0
 
