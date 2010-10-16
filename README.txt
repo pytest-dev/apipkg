@@ -22,7 +22,7 @@ and exports two objects imported from different modules::
     apipkg.initpkg(__name__, {
         'path': {
             'Class1': "_mypkg.somemodule:Class1",
-            'Class2': "_mypkg.othermodule:Class2",
+            'clsattr': "_mypkg.othermodule:Class2.attr",
         }
     }
 
@@ -41,16 +41,20 @@ an namespace attribute an import will be performed::
     >>> import mypkg
     >>> mypkg.path
     <ApiModule 'mypkg.path'>
-    >>> mypkg.sub.Class1   # '_mypkg.somemodule' gets imported now
+    >>> mypkg.path.Class1   # '_mypkg.somemodule' gets imported now
     <class _mypkg.somemodule.Class1 at 0xb7d428fc>
-    >>> mypkg.sub.Class2   # '_mypkg.othermodule' gets imported now
-    <class _mypkg.somemodule.Class1 at 0xb7d428fc>
+    >>> mypkg.path.clsattr  # '_mypkg.othermodule' gets imported now
+    4 # the value of _mypkg.othermodule.Class2.attr
 
-The ``mypkg.sub`` namespace and both its classes are 
-lazy loaded.  Note that **no imports apart from the root 
-'import mypkg' is required**. This means that whoever
-uses your Api only ever needs this one import.  Of course
-you can still use the import statement like so::
+The ``mypkg.path`` namespace and its two entries are
+loaded when they are accessed.   This means:
+
+* lazy loading - only what is actually needed is ever loaded
+
+* only the root "mypkg" ever needs to be imported to get
+  access to the complete functionality.
+
+* the underlying modules are also accessible, for example::
 
     from mypkg.sub import Class1
 

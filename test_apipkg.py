@@ -124,6 +124,18 @@ class TestScenarios:
         assert isinstance(recmodule, apipkg.ApiModule)
         assert recmodule.some.__name__ == "someclass"
 
+    def test_module_alias_import(self, monkeypatch, tmpdir):
+        pkgdir = tmpdir.mkdir("aliasimport")
+        pkgdir.join('__init__.py').write(py.code.Source("""
+            import apipkg
+            apipkg.initpkg(__name__, exportdefs={
+                'some': 'os.path',
+            })
+        """))
+        monkeypatch.syspath_prepend(tmpdir)
+        import aliasimport
+        assert aliasimport.some is py.std.os.path
+
 def xtest_nested_absolute_imports():
     import email
     api_email = apipkg.ApiModule('email',{
@@ -189,6 +201,7 @@ def test_initpkg_transfers_attrs(monkeypatch):
     mod.__version__ = 10
     mod.__file__ = "hello.py"
     mod.__loader__ = "loader"
+    mod.__doc__ = "this is the documentation"
     monkeypatch.setitem(sys.modules, 'hello', mod)
     apipkg.initpkg('hello', {})
     newmod = sys.modules['hello']
@@ -196,6 +209,16 @@ def test_initpkg_transfers_attrs(monkeypatch):
     assert newmod.__file__ == py.path.local(mod.__file__)
     assert newmod.__version__ == mod.__version__
     assert newmod.__loader__ == mod.__loader__
+    assert newmod.__doc__ == mod.__doc__
+
+def test_initpkg_not_overwrite_exportdefs(monkeypatch):
+    mod = type(sys)('hello')
+    mod.__doc__ = "this is the documentation"
+    monkeypatch.setitem(sys.modules, 'hello', mod)
+    apipkg.initpkg('hello', {"__doc__": "sys:__doc__"})
+    newmod = sys.modules['hello']
+    assert newmod != mod
+    assert newmod.__doc__ == sys.__doc__
 
 def test_initpkg_not_transfers_not_existing_attrs(monkeypatch):
     mod = type(sys)('hello')
@@ -214,7 +237,7 @@ def test_initpkg_defaults(monkeypatch):
     apipkg.initpkg('hello', {})
     newmod = sys.modules['hello']
     assert newmod.__file__ == None
-    assert newmod.__version__ == '0'
+    assert not hasattr(newmod, '__version__')
 
 def test_name_attribute():
     api = apipkg.ApiModule('name_test', {
@@ -285,7 +308,7 @@ def test_onfirstaccess_setsnewattr(tmpdir, monkeypatch, mode):
     if mode == 'attr':
         assert mod.newattr == 42
     elif mode == "dict":
-        print mod.__dict__.keys()
+        print (list(mod.__dict__.keys()))
         assert 'newattr' in mod.__dict__
     elif mode == "onfirst":
         assert not hasattr(mod, '__onfirstaccess__')
@@ -338,3 +361,23 @@ def test_chdir_with_relative_imports_shouldnt_break_lazy_loading(tmpdir):
     )
     assert res == 0
 
+
+def test_dotted_name_lookup(tmpdir, monkeypatch):
+    pkgdir = tmpdir.mkdir("dotted_name_lookup")
+    pkgdir.join('__init__.py').write(py.code.Source("""
+        import apipkg
+        apipkg.initpkg(__name__, dict(abs='os:path.abspath'))
+    """))
+    monkeypatch.syspath_prepend(tmpdir)
+    import dotted_name_lookup
+    assert dotted_name_lookup.abs == py.std.os.path.abspath
+
+def test_extra_attributes(tmpdir, monkeypatch):
+    pkgdir = tmpdir.mkdir("extra_attributes")
+    pkgdir.join('__init__.py').write(py.code.Source("""
+        import apipkg
+        apipkg.initpkg(__name__, dict(abs='os:path.abspath'), dict(foo='bar'))
+    """))
+    monkeypatch.syspath_prepend(tmpdir)
+    import extra_attributes
+    assert extra_attributes.foo == 'bar'
