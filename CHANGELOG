@@ -1,0 +1,39 @@
+1.1
+----------------------------------------
+
+- copy __doc__ and introduce a new argument to initpkg()
+  (thanks Ralf Schmitt)
+
+- don't use a "0" default for __version__
+
+1.0
+----------------------------------------
+
+- make apipkg memorize the absolute path where a package starts
+  importing so that subsequent chdir + imports won't break. 
+
+- allow to alias modules
+
+- allow to use dotted names in alias specifications (thanks Ralf
+  Schmitt).
+
+1.0.0b6
+----------------------------------------
+
+- fix recursive import issue resulting in a superflous KeyError 
+- default to __version__ '0' and not set __loader__ or __path__ at all if it
+  doesn't exist on the underlying init module
+
+1.0.0b5
+----------------------------------------
+
+- fixed MANIFEST.in
+- also transfer __loader__ attribute (thanks Ralf Schmitt) 
+- compat fix for BPython 
+
+1.0.0b3 (compared to 1.0.0b2)
+------------------------------------
+
+- added special __onfirstaccess__ attribute whose value will 
+  be called on the first attribute access of an apimodule. 
+
