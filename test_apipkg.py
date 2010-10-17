@@ -288,7 +288,7 @@ def test_onfirstaccess(tmpdir, monkeypatch):
 
 @py.test.mark.multi(mode=['attr', 'dict', 'onfirst'])
 def test_onfirstaccess_setsnewattr(tmpdir, monkeypatch, mode):
-    pkgname = tmpdir.basename.replace("-", "")
+    pkgname = 'mode_' + mode
     pkgdir = tmpdir.mkdir(pkgname)
     pkgdir.join('__init__.py').write(py.code.Source("""
         import apipkg
