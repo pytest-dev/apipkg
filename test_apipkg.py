@@ -136,6 +136,18 @@ class TestScenarios:
         import aliasimport
         assert aliasimport.some is py.std.os.path
 
+    def test_from_module_alias_import(self, monkeypatch, tmpdir):
+        pkgdir = tmpdir.mkdir("fromaliasimport")
+        pkgdir.join('__init__.py').write(py.code.Source("""
+            import apipkg
+            apipkg.initpkg(__name__, exportdefs={
+                'some': 'os.path',
+            })
+        """))
+        monkeypatch.syspath_prepend(tmpdir)
+        from fromaliasimport.some import join
+        assert join is py.std.os.path.join
+
 def xtest_nested_absolute_imports():
     import email
     api_email = apipkg.ApiModule('email',{
