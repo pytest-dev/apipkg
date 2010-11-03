@@ -65,10 +65,17 @@ class ApiModule(ModuleType):
                 attrname = parts and parts[0] or ""
                 if modpath[0] == '.':
                     modpath = implprefix + modpath
-                if name == '__doc__':
-                    self.__doc__ = importobj(modpath, attrname)
+
+                if not attrname:
+                    subname = '%s.%s'%(self.__name__, name)
+                    apimod = AliasModule(subname, modpath)
+                    sys.modules[subname] = apimod
+                    setattr(self, name, apimod)
                 else:
-                    self.__map__[name] = (modpath, attrname)
+                    if name == '__doc__':
+                        self.__doc__ = importobj(modpath, attrname)
+                    else:
+                        self.__map__[name] = (modpath, attrname)
 
     def __repr__(self):
         l = []
@@ -116,5 +123,37 @@ class ApiModule(ModuleType):
                     self.__makeattr(name)
                 except AttributeError:
                     pass
+        return dict
+    __dict__ = property(__dict__)
+
+class AliasModule(ModuleType):
+    def __init__(self, name, modpath):
+        self.__name__ = name
+        self.__modpath = modpath
+
+    def __repr__(self):
+        l = []
+        if hasattr(self, '__version__'):
+            l.append("version=" + repr(self.__version__))
+        if hasattr(self, '__file__'):
+            l.append('from ' + repr(self.__file__))
+        if l:
+            return '<AliasModule %r %s>' % (self.__name__, " ".join(l))
+        return '<AliasModule %r>' % (self.__name__,)
+
+    def __getattr__(self, name):
+        mod = importobj(self.__modpath, None)
+        result = getattr(mod, name)
+        setattr(self, name, result)
+        for k, v in mod.__dict__.items():
+            setattr(self, k, v)
+        return result
+
+    def __dict__(self):
+        # force all the content of the module to be loaded when __dict__ is read
+        dictdescr = ModuleType.__dict__['__dict__']
+        dict = dictdescr.__get__(self)
+        if dict is not None:
+            hasattr(self, 'some')
         return dict
     __dict__ = property(__dict__)
