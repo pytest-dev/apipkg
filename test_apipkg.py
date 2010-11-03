@@ -134,7 +134,8 @@ class TestScenarios:
         """))
         monkeypatch.syspath_prepend(tmpdir)
         import aliasimport
-        assert aliasimport.some is py.std.os.path
+        for k, v in py.std.os.path.__dict__.items():
+            assert getattr(aliasimport.some, k) == v
 
     def test_from_module_alias_import(self, monkeypatch, tmpdir):
         pkgdir = tmpdir.mkdir("fromaliasimport")
