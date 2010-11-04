@@ -13,7 +13,7 @@ __version__ = "1.2.dev1"
 
 def initpkg(pkgname, exportdefs, attr=dict()):
     """ initialize given package from the export definitions. """
-    oldmod = sys.modules[pkgname]
+    oldmod = sys.modules.get(pkgname)
     d = {}
     f = getattr(oldmod, '__file__', None)
     if f:
@@ -28,7 +28,8 @@ def initpkg(pkgname, exportdefs, attr=dict()):
     if hasattr(oldmod, '__doc__'):
         d['__doc__'] = oldmod.__doc__
     d.update(attr)
-    oldmod.__dict__.update(d)
+    if hasattr(oldmod, "__dict__"):
+        oldmod.__dict__.update(d)
     mod = ApiModule(pkgname, exportdefs, implprefix=pkgname, attr=d)
     sys.modules[pkgname]  = mod
 

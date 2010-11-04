@@ -400,3 +400,9 @@ def test_aliasmodule_repr():
     assert "<AliasModule 'mymod' for 'sys'>" == r
     am.version
     assert repr(am) == r
+
+def test_initpkg_without_old_module():
+    apipkg.initpkg("initpkg_without_old_module",
+                   dict(modules="sys:modules"))
+    from initpkg_without_old_module import modules
+    assert modules is sys.modules
