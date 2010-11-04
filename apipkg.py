@@ -128,18 +128,11 @@ class ApiModule(ModuleType):
 
 class AliasModule(ModuleType):
     def __init__(self, name, modpath):
-        self.__name__ = name
+        self.__name = name
         self.__modpath = modpath
 
     def __repr__(self):
-        l = []
-        if hasattr(self, '__version__'):
-            l.append("version=" + repr(self.__version__))
-        if hasattr(self, '__file__'):
-            l.append('from ' + repr(self.__file__))
-        if l:
-            return '<AliasModule %r %s>' % (self.__name__, " ".join(l))
-        return '<AliasModule %r>' % (self.__name__,)
+        return '<AliasModule %r for %r>' % (self.__name, self.__modpath)
 
     def __getattr__(self, name):
         mod = importobj(self.__modpath, None)

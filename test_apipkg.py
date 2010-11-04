@@ -393,3 +393,10 @@ def test_extra_attributes(tmpdir, monkeypatch):
     monkeypatch.syspath_prepend(tmpdir)
     import extra_attributes
     assert extra_attributes.foo == 'bar'
+
+def test_aliasmodule_repr():
+    am = apipkg.AliasModule("mymod", "sys")
+    r = repr(am)
+    assert "<AliasModule 'mymod' for 'sys'>" == r
+    am.version
+    assert repr(am) == r
