@@ -25,7 +25,7 @@ def initpkg(pkgname, exportdefs, attr=dict()):
         d['__loader__'] = oldmod.__loader__
     if hasattr(oldmod, '__path__'):
         d['__path__'] = [os.path.abspath(p) for p in oldmod.__path__]
-    if hasattr(oldmod, '__doc__'):
+    if '__doc__' not in exportdefs and getattr(oldmod, '__doc__', None):
         d['__doc__'] = oldmod.__doc__
     d.update(attr)
     if hasattr(oldmod, "__dict__"):
@@ -45,6 +45,16 @@ def importobj(modpath, attrname):
     return retval
 
 class ApiModule(ModuleType):
+    def __docget(self):
+        try:
+            return self.__doc
+        except AttributeError:
+            if '__doc__' in self.__map__:
+                return self.__makeattr('__doc__')
+    def __docset(self, value):
+        self.__doc = value
+    __doc__ = property(__docget, __docset)
+
     def __init__(self, name, importspec, implprefix=None, attr=None):
         self.__name__ = name
         self.__all__ = [x for x in importspec if x != '__onfirstaccess__']
@@ -73,10 +83,7 @@ class ApiModule(ModuleType):
                     sys.modules[subname] = apimod
                     setattr(self, name, apimod)
                 else:
-                    if name == '__doc__':
-                        self.__doc__ = importobj(modpath, attrname)
-                    else:
-                        self.__map__[name] = (modpath, attrname)
+                    self.__map__[name] = (modpath, attrname)
 
     def __repr__(self):
         l = []

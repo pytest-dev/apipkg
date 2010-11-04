@@ -115,12 +115,12 @@ class TestScenarios:
             })
         """))
         pkgdir.join('submod.py').write(py.code.Source("""
-            import recmodule 
+            import recmodule
             class someclass: pass
             print (recmodule.__dict__)
         """))
         monkeypatch.syspath_prepend(tmpdir)
-        import recmodule 
+        import recmodule
         assert isinstance(recmodule, apipkg.ApiModule)
         assert recmodule.some.__name__ == "someclass"
 
@@ -224,14 +224,22 @@ def test_initpkg_transfers_attrs(monkeypatch):
     assert newmod.__loader__ == mod.__loader__
     assert newmod.__doc__ == mod.__doc__
 
-def test_initpkg_not_overwrite_exportdefs(monkeypatch):
+def test_initpkg_nodoc(monkeypatch):
     mod = type(sys)('hello')
-    mod.__doc__ = "this is the documentation"
+    mod.__file__ = "hello.py"
     monkeypatch.setitem(sys.modules, 'hello', mod)
-    apipkg.initpkg('hello', {"__doc__": "sys:__doc__"})
+    apipkg.initpkg('hello', {})
     newmod = sys.modules['hello']
-    assert newmod != mod
-    assert newmod.__doc__ == sys.__doc__
+    assert not newmod.__doc__
+
+def test_initpkg_overwrite_doc(monkeypatch):
+    hello = type(sys)('hello')
+    hello.__doc__ = "this is the documentation"
+    monkeypatch.setitem(sys.modules, 'hello', hello)
+    apipkg.initpkg('hello', {"__doc__": "sys:__doc__"})
+    newhello = sys.modules['hello']
+    assert newhello != hello
+    assert newhello.__doc__ == sys.__doc__
 
 def test_initpkg_not_transfers_not_existing_attrs(monkeypatch):
     mod = type(sys)('hello')
@@ -289,7 +297,7 @@ def test_onfirstaccess(tmpdir, monkeypatch):
     """))
     pkgdir.join('submod.py').write(py.code.Source("""
         l = []
-        def init(): 
+        def init():
             l.append(1)
     """))
     monkeypatch.syspath_prepend(tmpdir)
@@ -311,9 +319,9 @@ def test_onfirstaccess_setsnewattr(tmpdir, monkeypatch, mode):
         )
     """))
     pkgdir.join('submod.py').write(py.code.Source("""
-        def init(): 
+        def init():
             import %s as pkg
-            pkg.newattr = 42 
+            pkg.newattr = 42
     """ % pkgname))
     monkeypatch.syspath_prepend(tmpdir)
     mod = __import__(pkgname)
