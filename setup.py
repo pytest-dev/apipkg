@@ -13,15 +13,13 @@ try:
 except ImportError:
     from distutils.core import setup
 
-from apipkg import __version__
-
 def main():
     setup(
         name='apipkg',
         description=
         'apipkg: namespace control and lazy-import mechanism',
         long_description = open('README.txt').read(),
-        version= __version__,
+        version='1.2.dev4',
         url='http://bitbucket.org/hpk42/apipkg',
         license='MIT License',
         platforms=['unix', 'linux', 'osx', 'cygwin', 'win32'],
