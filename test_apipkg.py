@@ -409,6 +409,35 @@ def test_aliasmodule_repr():
     am.version
     assert repr(am) == r
 
+def test_aliasmodule_proxy_methods(tmpdir, monkeypatch):
+    pkgdir = tmpdir
+    pkgdir.join('aliasmodule_proxy.py').write(py.code.Source("""
+        def doit():
+            return 42
+    """))
+
+    pkgdir.join('my_aliasmodule_proxy.py').write(py.code.Source("""
+        import apipkg
+        apipkg.initpkg(__name__, dict(proxy='aliasmodule_proxy'))
+
+        def doit():
+            return 42
+    """))
+
+    monkeypatch.syspath_prepend(tmpdir)
+    import aliasmodule_proxy as orig
+    from my_aliasmodule_proxy import proxy
+
+    doit = proxy.doit
+    assert doit is orig.doit
+
+    del proxy.doit
+    py.test.raises(AttributeError, "orig.doit")
+
+    proxy.doit = doit
+    assert orig.doit is doit
+
+
 def test_initpkg_without_old_module():
     apipkg.initpkg("initpkg_without_old_module",
                    dict(modules="sys:modules"))
