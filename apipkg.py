@@ -9,7 +9,7 @@ import os
 import sys
 from types import ModuleType
 
-__version__ = "1.2.dev1"
+__version__ = '1.2.dev5'
 
 def initpkg(pkgname, exportdefs, attr=dict()):
     """ initialize given package from the export definitions. """
@@ -81,7 +81,8 @@ class ApiModule(ModuleType):
                     subname = '%s.%s'%(self.__name__, name)
                     apimod = AliasModule(subname, modpath)
                     sys.modules[subname] = apimod
-                    setattr(self, name, apimod)
+                    if '.' not in name:
+                        setattr(self, name, apimod)
                 else:
                     self.__map__[name] = (modpath, attrname)
 
