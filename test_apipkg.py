@@ -437,6 +437,31 @@ def test_aliasmodule_proxy_methods(tmpdir, monkeypatch):
     proxy.doit = doit
     assert orig.doit is doit
 
+def test_aliasmodule_nested_import_with_from(tmpdir, monkeypatch):
+    import os
+    pkgdir = tmpdir.mkdir("api1")
+    pkgdir.ensure("__init__.py").write(py.std.textwrap.dedent("""
+        import apipkg
+        apipkg.initpkg(__name__, {
+            'os2': 'api2',
+            'os2.path': 'api2.path2',
+            })
+    """))
+    tmpdir.join("api2.py").write(py.std.textwrap.dedent("""
+        import os, sys
+        from os import path
+        sys.modules['api2.path2'] = path
+        x = 3
+    """))
+    monkeypatch.syspath_prepend(tmpdir)
+    from api1 import os2
+    from api1.os2.path import abspath
+    assert abspath == os.path.abspath
+    # check that api1.os2 mirrors os.*
+    assert os2.x == 3
+    import api1
+    assert 'os2.path' not in api1.__dict__
+
 
 def test_initpkg_without_old_module():
     apipkg.initpkg("initpkg_without_old_module",
