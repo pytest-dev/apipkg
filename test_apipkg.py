@@ -115,12 +115,12 @@ class TestScenarios:
             })
         """))
         pkgdir.join('submod.py').write(py.code.Source("""
-            import recmodule 
+            import recmodule
             class someclass: pass
             print (recmodule.__dict__)
         """))
         monkeypatch.syspath_prepend(tmpdir)
-        import recmodule 
+        import recmodule
         assert isinstance(recmodule, apipkg.ApiModule)
         assert recmodule.some.__name__ == "someclass"
 
@@ -134,7 +134,20 @@ class TestScenarios:
         """))
         monkeypatch.syspath_prepend(tmpdir)
         import aliasimport
-        assert aliasimport.some is py.std.os.path
+        for k, v in py.std.os.path.__dict__.items():
+            assert getattr(aliasimport.some, k) == v
+
+    def test_from_module_alias_import(self, monkeypatch, tmpdir):
+        pkgdir = tmpdir.mkdir("fromaliasimport")
+        pkgdir.join('__init__.py').write(py.code.Source("""
+            import apipkg
+            apipkg.initpkg(__name__, exportdefs={
+                'some': 'os.path',
+            })
+        """))
+        monkeypatch.syspath_prepend(tmpdir)
+        from fromaliasimport.some import join
+        assert join is py.std.os.path.join
 
 def xtest_nested_absolute_imports():
     import email
@@ -211,14 +224,22 @@ def test_initpkg_transfers_attrs(monkeypatch):
     assert newmod.__loader__ == mod.__loader__
     assert newmod.__doc__ == mod.__doc__
 
-def test_initpkg_not_overwrite_exportdefs(monkeypatch):
+def test_initpkg_nodoc(monkeypatch):
     mod = type(sys)('hello')
-    mod.__doc__ = "this is the documentation"
+    mod.__file__ = "hello.py"
     monkeypatch.setitem(sys.modules, 'hello', mod)
-    apipkg.initpkg('hello', {"__doc__": "sys:__doc__"})
+    apipkg.initpkg('hello', {})
     newmod = sys.modules['hello']
-    assert newmod != mod
-    assert newmod.__doc__ == sys.__doc__
+    assert not newmod.__doc__
+
+def test_initpkg_overwrite_doc(monkeypatch):
+    hello = type(sys)('hello')
+    hello.__doc__ = "this is the documentation"
+    monkeypatch.setitem(sys.modules, 'hello', hello)
+    apipkg.initpkg('hello', {"__doc__": "sys:__doc__"})
+    newhello = sys.modules['hello']
+    assert newhello != hello
+    assert newhello.__doc__ == sys.__doc__
 
 def test_initpkg_not_transfers_not_existing_attrs(monkeypatch):
     mod = type(sys)('hello')
@@ -276,7 +297,7 @@ def test_onfirstaccess(tmpdir, monkeypatch):
     """))
     pkgdir.join('submod.py').write(py.code.Source("""
         l = []
-        def init(): 
+        def init():
             l.append(1)
     """))
     monkeypatch.syspath_prepend(tmpdir)
@@ -298,9 +319,9 @@ def test_onfirstaccess_setsnewattr(tmpdir, monkeypatch, mode):
         )
     """))
     pkgdir.join('submod.py').write(py.code.Source("""
-        def init(): 
+        def init():
             import %s as pkg
-            pkg.newattr = 42 
+            pkg.newattr = 42
     """ % pkgname))
     monkeypatch.syspath_prepend(tmpdir)
     mod = __import__(pkgname)
@@ -380,3 +401,76 @@ def test_extra_attributes(tmpdir, monkeypatch):
     monkeypatch.syspath_prepend(tmpdir)
     import extra_attributes
     assert extra_attributes.foo == 'bar'
+
+def test_aliasmodule_aliases_an_attribute():
+    am = apipkg.AliasModule("mymod", "pprint", 'PrettyPrinter')
+    r = repr(am)
+    assert "<AliasModule 'mymod' for 'pprint.PrettyPrinter'>" == r
+    assert am.format
+
+def test_aliasmodule_repr():
+    am = apipkg.AliasModule("mymod", "sys")
+    r = repr(am)
+    assert "<AliasModule 'mymod' for 'sys'>" == r
+    am.version
+    assert repr(am) == r
+
+def test_aliasmodule_proxy_methods(tmpdir, monkeypatch):
+    pkgdir = tmpdir
+    pkgdir.join('aliasmodule_proxy.py').write(py.code.Source("""
+        def doit():
+            return 42
+    """))
+
+    pkgdir.join('my_aliasmodule_proxy.py').write(py.code.Source("""
+        import apipkg
+        apipkg.initpkg(__name__, dict(proxy='aliasmodule_proxy'))
+
+        def doit():
+            return 42
+    """))
+
+    monkeypatch.syspath_prepend(tmpdir)
+    import aliasmodule_proxy as orig
+    from my_aliasmodule_proxy import proxy
+
+    doit = proxy.doit
+    assert doit is orig.doit
+
+    del proxy.doit
+    py.test.raises(AttributeError, "orig.doit")
+
+    proxy.doit = doit
+    assert orig.doit is doit
+
+def test_aliasmodule_nested_import_with_from(tmpdir, monkeypatch):
+    import os
+    pkgdir = tmpdir.mkdir("api1")
+    pkgdir.ensure("__init__.py").write(py.std.textwrap.dedent("""
+        import apipkg
+        apipkg.initpkg(__name__, {
+            'os2': 'api2',
+            'os2.path': 'api2.path2',
+            })
+    """))
+    tmpdir.join("api2.py").write(py.std.textwrap.dedent("""
+        import os, sys
+        from os import path
+        sys.modules['api2.path2'] = path
+        x = 3
+    """))
+    monkeypatch.syspath_prepend(tmpdir)
+    from api1 import os2
+    from api1.os2.path import abspath
+    assert abspath == os.path.abspath
+    # check that api1.os2 mirrors os.*
+    assert os2.x == 3
+    import api1
+    assert 'os2.path' not in api1.__dict__
+
+
+def test_initpkg_without_old_module():
+    apipkg.initpkg("initpkg_without_old_module",
+                   dict(modules="sys:modules"))
+    from initpkg_without_old_module import modules
+    assert modules is sys.modules

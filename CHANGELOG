@@ -1,3 +1,9 @@
+1.2.dev
+----------------------------------------
+
+- Allow to import from Aliasmodules  (thanks Ralf Schmitt)
+- avoid loading __doc__ early, so ApiModule is now fully lazy
+
 1.1
 ----------------------------------------
 
