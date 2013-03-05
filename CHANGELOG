@@ -2,6 +2,7 @@
 ----------------------------------------
 
 - fix issue2 - adapt tests on Jython
+- handle jython __pkgpath__ missabstraction when running python from jar files
 
 1.2
 ----------------------------------------
