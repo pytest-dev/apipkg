@@ -253,6 +253,21 @@ def test_initpkg_not_transfers_not_existing_attrs(monkeypatch):
     assert not hasattr(newmod, '__loader__')
     assert not hasattr(newmod, '__path__')
 
+
+def test_initpkg_not_changing_jython_paths(monkeypatch):
+    mod = ModuleType('hello')
+    mod.__file__ = '__pyclasspath__/test.py'
+    mod.__path__ = ['__pyclasspath__/fun', 'ichange']
+    monkeypatch.setitem(sys.modules, 'hello', mod)
+    apipkg.initpkg('hello', {})
+    newmod = sys.modules['hello']
+    assert newmod != mod
+    assert newmod.__file__.startswith('__pyclasspath__')
+    unchanged, changed = newmod.__path__
+    assert changed != 'ichange'
+    assert unchanged.startswith('__pyclasspath__')
+
+
 def test_initpkg_defaults(monkeypatch):
     mod = ModuleType('hello')
     monkeypatch.setitem(sys.modules, 'hello', mod)
