@@ -174,4 +174,4 @@ def AliasModule(modname, modpath, attrname=None):
         def __delattr__(self, name):
             delattr(getmod(), name)
 
-    return AliasModule(modname)
+    return AliasModule(str(modname))

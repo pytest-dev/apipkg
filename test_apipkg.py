@@ -424,6 +424,10 @@ def test_aliasmodule_aliases_an_attribute():
     assert "<AliasModule 'mymod' for 'pprint.PrettyPrinter'>" == r
     assert am.format
 
+def test_aliasmodule_unicode():
+    am = apipkg.AliasModule(py.builtin._totext("mymod"), "pprint")
+    assert am
+
 def test_aliasmodule_repr():
     am = apipkg.AliasModule("mymod", "sys")
     r = repr(am)
