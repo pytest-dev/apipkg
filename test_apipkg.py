@@ -423,6 +423,13 @@ def test_aliasmodule_aliases_an_attribute():
     r = repr(am)
     assert "<AliasModule 'mymod' for 'pprint.PrettyPrinter'>" == r
     assert am.format
+    assert not hasattr(am, "lqkje")
+
+def test_aliasmodule_aliases_unimportable():
+    am = apipkg.AliasModule("mymod", "qlwkejqlwe", 'main')
+    r = repr(am)
+    assert "<AliasModule 'mymod' for 'qlwkejqlwe.main'>" == r
+    assert am.qwe is None
 
 def test_aliasmodule_unicode():
     am = apipkg.AliasModule(py.builtin._totext("mymod"), "pprint")

@@ -3,6 +3,10 @@
 
 - fix issue2 - adapt tests on Jython
 - handle jython __pkgpath__ missabstraction when running python from jar files
+- alias modules pointing to unimportable modules will return None for
+  all their attributes instead of raising ImportError.  This addresses
+  python3.4 where any call to getframeinfo() can choke on sys.modules
+  contents if pytest is not installed (because py.test.* imports it).
 
 1.2
 ----------------------------------------
