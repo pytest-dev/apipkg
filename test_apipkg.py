@@ -245,12 +245,12 @@ def test_initpkg_overwrite_doc(monkeypatch):
 def test_initpkg_not_transfers_not_existing_attrs(monkeypatch):
     mod = ModuleType('hello')
     mod.__file__ = "hello.py"
+    assert not hasattr(mod, '__path__')
     monkeypatch.setitem(sys.modules, 'hello', mod)
     apipkg.initpkg('hello', {})
     newmod = sys.modules['hello']
     assert newmod != mod
     assert newmod.__file__ == py.path.local(mod.__file__)
-    assert not hasattr(newmod, '__loader__')
     assert not hasattr(newmod, '__path__')
 
 
