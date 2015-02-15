@@ -9,8 +9,6 @@ import os
 import sys
 from types import ModuleType
 
-__version__ = '1.3.dev'
-
 
 def _py_abspath(path):
     """
@@ -34,6 +32,10 @@ def distribution_version(name):
         pass
     else:
         return dist.version
+
+
+# this will yield wrong data for vendore versions
+__version__ = distribution_version(__name__)
 
 
 def initpkg(pkgname, exportdefs, attr=dict()):
