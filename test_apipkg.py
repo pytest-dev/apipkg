@@ -526,3 +526,8 @@ def test_initpkg_without_old_module():
                    dict(modules="sys:modules"))
     from initpkg_without_old_module import modules
     assert modules is sys.modules
+
+
+def test_get_distribution_version():
+    assert apipkg.distribution_version('setuptools') is not None
+    assert apipkg.distribution_version('email') is None
