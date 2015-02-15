@@ -6,20 +6,15 @@ compatible to CPython 2.3 through to CPython 3.1, Jython, PyPy
 (c) 2009 holger krekel, Holger Krekel
 """
 
-import os, sys
+from setuptools import setup
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
 
 def main():
     setup(
         name='apipkg',
-        description=
-        'apipkg: namespace control and lazy-import mechanism',
-        long_description = open('README.txt').read(),
-        version='1.3.dev',
+        description='apipkg: namespace control and lazy-import mechanism',
+        long_description=open('README.txt').read(),
+        get_version_from_scm=True,
         url='http://bitbucket.org/hpk42/apipkg',
         license='MIT License',
         platforms=['unix', 'linux', 'osx', 'cygwin', 'win32'],
@@ -34,7 +29,10 @@ def main():
             'Operating System :: MacOS :: MacOS X',
             'Topic :: Software Development :: Libraries',
             'Programming Language :: Python'],
-        py_modules=['apipkg']
+        py_modules=['apipkg'],
+        setup_requires=[
+            'hgdistver'
+        ]
     )
 
 if __name__ == '__main__':

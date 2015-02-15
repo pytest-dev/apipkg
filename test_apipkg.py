@@ -3,10 +3,12 @@ import sys
 import py
 import apipkg
 import subprocess
+import pytest
 #
 # test support for importing modules
 #
-ModuleType = py.std.types.ModuleType
+ModuleType = types.ModuleType
+
 
 class TestRealModule:
 
@@ -61,7 +63,7 @@ class TestRealModule:
 
     def test_realmodule_repr(self):
         import realtest.x
-        assert "<ApiModule 'realtest.x'>"  == repr(realtest.x)
+        assert "<ApiModule 'realtest.x'>" == repr(realtest.x)
 
     def test_realmodule_from(self):
         from realtest.x import module
@@ -85,6 +87,7 @@ class TestRealModule:
         import realtest.x.module
         print (realtest.x.module.__map__)
         assert realtest.x.module.__doc__ == 'test module'
+
 
 class TestScenarios:
     def test_relative_import(self, monkeypatch, tmpdir):
@@ -150,9 +153,9 @@ class TestScenarios:
         from fromaliasimport.some import join
         assert join is py.std.os.path.join
 
+
 def xtest_nested_absolute_imports():
-    import email
-    api_email = apipkg.ApiModule('email',{
+    apipkg.ApiModule('email', {
         'message2': {
             'Message': 'email.message:Message',
             },
@@ -162,6 +165,8 @@ def xtest_nested_absolute_imports():
 
 # alternate ideas for specifying package + preliminary code
 #
+
+
 def test_parsenamespace():
     spec = """
         path.local    __.path.local::LocalPath
@@ -170,10 +175,14 @@ def test_parsenamespace():
     """
     d = parsenamespace(spec)
     print (d)
-    assert d == {'test': {'raises': '__.test.outcome::raises'},
-                 'path': {'svnwc': '__.path.svnwc::WCCommandPath',
-                          'local': '__.path.local::LocalPath'}
-            }
+    assert d == {
+        'test': {'raises': '__.test.outcome::raises'},
+        'path': {
+            'svnwc': '__.path.svnwc::WCCommandPath',
+            'local': '__.path.local::LocalPath'}
+    }
+
+
 def xtest_parsenamespace_errors():
     py.test.raises(ValueError, """
         parsenamespace('path.local xyz')
@@ -181,6 +190,7 @@ def xtest_parsenamespace_errors():
     py.test.raises(ValueError, """
         parsenamespace('x y z')
     """)
+
 
 def parsenamespace(spec):
     ns = {}
@@ -190,10 +200,10 @@ def parsenamespace(spec):
             continue
         parts = [x.strip() for x in line.split()]
         if len(parts) != 2:
-            raise ValueError("Wrong format: %r" %(line,))
+            raise ValueError("Wrong format: %r" % (line,))
         apiname, spec = parts
         if not spec.startswith("__"):
-            raise ValueError("%r does not start with __" %(spec,))
+            raise ValueError("%r does not start with __" % (spec,))
         apinames = apiname.split(".")
         cur = ns
         for name in apinames[:-1]:
@@ -202,6 +212,7 @@ def parsenamespace(spec):
         cur[apinames[-1]] = spec
     return ns
 
+
 def test_initpkg_replaces_sysmodules(monkeypatch):
     mod = ModuleType('hello')
     monkeypatch.setitem(sys.modules, 'hello', mod)
@@ -209,6 +220,7 @@ def test_initpkg_replaces_sysmodules(monkeypatch):
     newmod = sys.modules['hello']
     assert newmod != mod
     assert newmod.x == py.std.os.path.abspath
+
 
 def test_initpkg_transfers_attrs(monkeypatch):
     mod = ModuleType('hello')
@@ -225,6 +237,7 @@ def test_initpkg_transfers_attrs(monkeypatch):
     assert newmod.__loader__ == mod.__loader__
     assert newmod.__doc__ == mod.__doc__
 
+
 def test_initpkg_nodoc(monkeypatch):
     mod = ModuleType('hello')
     mod.__file__ = "hello.py"
@@ -232,6 +245,7 @@ def test_initpkg_nodoc(monkeypatch):
     apipkg.initpkg('hello', {})
     newmod = sys.modules['hello']
     assert not newmod.__doc__
+
 
 def test_initpkg_overwrite_doc(monkeypatch):
     hello = ModuleType('hello')
@@ -241,6 +255,7 @@ def test_initpkg_overwrite_doc(monkeypatch):
     newhello = sys.modules['hello']
     assert newhello != hello
     assert newhello.__doc__ == sys.__doc__
+
 
 def test_initpkg_not_transfers_not_existing_attrs(monkeypatch):
     mod = ModuleType('hello')
@@ -273,8 +288,9 @@ def test_initpkg_defaults(monkeypatch):
     monkeypatch.setitem(sys.modules, 'hello', mod)
     apipkg.initpkg('hello', {})
     newmod = sys.modules['hello']
-    assert newmod.__file__ == None
+    assert newmod.__file__ is None
     assert not hasattr(newmod, '__version__')
+
 
 def test_name_attribute():
     api = apipkg.ApiModule('name_test', {
@@ -282,6 +298,7 @@ def test_name_attribute():
         })
     assert api.__name__ == 'name_test'
     assert api.subpkg.__name__ == 'name_test.subpkg'
+
 
 def test_error_loading_one_element(monkeypatch, tmpdir):
     pkgdir = tmpdir.mkdir("errorloading1")
@@ -300,6 +317,7 @@ def test_error_loading_one_element(monkeypatch, tmpdir):
     assert errorloading1.y == 0
     py.test.raises(ImportError, 'errorloading1.x')
     py.test.raises(ImportError, 'errorloading1.x')
+
 
 def test_onfirstaccess(tmpdir, monkeypatch):
     pkgdir = tmpdir.mkdir("firstaccess")
@@ -323,7 +341,8 @@ def test_onfirstaccess(tmpdir, monkeypatch):
     assert len(firstaccess.l) == 1
     assert '__onfirstaccess__' not in firstaccess.__all__
 
-@py.test.mark.multi(mode=['attr', 'dict', 'onfirst'])
+
+@pytest.mark.parametrize('mode', ['attr', 'dict', 'onfirst'])
 def test_onfirstaccess_setsnewattr(tmpdir, monkeypatch, mode):
     pkgname = 'mode_' + mode
     pkgdir = tmpdir.mkdir(pkgname)
@@ -352,6 +371,7 @@ def test_onfirstaccess_setsnewattr(tmpdir, monkeypatch, mode):
         assert not hasattr(mod, '__onfirstaccess__')
     assert '__onfirstaccess__' not in vars(mod)
 
+
 def test_bpython_getattr_override(tmpdir, monkeypatch):
     def patchgetattr(self, name):
         raise AttributeError(name)
@@ -363,12 +383,10 @@ def test_bpython_getattr_override(tmpdir, monkeypatch):
     assert 'abspath' in d
 
 
-
-
 def test_chdir_with_relative_imports_shouldnt_break_lazy_loading(tmpdir):
     tmpdir.join('apipkg.py').write(py.code.Source(apipkg))
     pkg = tmpdir.mkdir('pkg')
-    messy = tmpdir.mkdir('messy')
+    tmpdir.mkdir('messy')
     pkg.join('__init__.py').write(py.code.Source("""
         import apipkg
         apipkg.initpkg(__name__, {
@@ -408,6 +426,7 @@ def test_dotted_name_lookup(tmpdir, monkeypatch):
     import dotted_name_lookup
     assert dotted_name_lookup.abs == py.std.os.path.abspath
 
+
 def test_extra_attributes(tmpdir, monkeypatch):
     pkgdir = tmpdir.mkdir("extra_attributes")
     pkgdir.join('__init__.py').write(py.code.Source("""
@@ -418,6 +437,7 @@ def test_extra_attributes(tmpdir, monkeypatch):
     import extra_attributes
     assert extra_attributes.foo == 'bar'
 
+
 def test_aliasmodule_aliases_an_attribute():
     am = apipkg.AliasModule("mymod", "pprint", 'PrettyPrinter')
     r = repr(am)
@@ -425,15 +445,18 @@ def test_aliasmodule_aliases_an_attribute():
     assert am.format
     assert not hasattr(am, "lqkje")
 
+
 def test_aliasmodule_aliases_unimportable():
     am = apipkg.AliasModule("mymod", "qlwkejqlwe", 'main')
     r = repr(am)
     assert "<AliasModule 'mymod' for 'qlwkejqlwe.main'>" == r
     assert am.qwe is None
 
+
 def test_aliasmodule_unicode():
     am = apipkg.AliasModule(py.builtin._totext("mymod"), "pprint")
     assert am
+
 
 def test_aliasmodule_repr():
     am = apipkg.AliasModule("mymod", "sys")
@@ -441,6 +464,7 @@ def test_aliasmodule_repr():
     assert "<AliasModule 'mymod' for 'sys'>" == r
     am.version
     assert repr(am) == r
+
 
 def test_aliasmodule_proxy_methods(tmpdir, monkeypatch):
     pkgdir = tmpdir
@@ -469,6 +493,7 @@ def test_aliasmodule_proxy_methods(tmpdir, monkeypatch):
 
     proxy.doit = doit
     assert orig.doit is doit
+
 
 def test_aliasmodule_nested_import_with_from(tmpdir, monkeypatch):
     import os
