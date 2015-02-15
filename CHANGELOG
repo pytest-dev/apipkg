@@ -1,4 +1,4 @@
-1.3.dev
+1.3
 ----------------------------------------
 
 - fix issue2 - adapt tests on Jython
@@ -7,6 +7,9 @@
   all their attributes instead of raising ImportError.  This addresses
   python3.4 where any call to getframeinfo() can choke on sys.modules
   contents if pytest is not installed (because py.test.* imports it).
+- introduce apipkg.distribution_version(name) as helper to
+  obtain the current version number of a package from install metadata
+  its used by default with the package name
 
 1.2
 ----------------------------------------
@@ -26,7 +29,7 @@
 ----------------------------------------
 
 - make apipkg memorize the absolute path where a package starts
-  importing so that subsequent chdir + imports won't break. 
+  importing so that subsequent chdir + imports won't break.
 
 - allow to alias modules
 
@@ -36,7 +39,7 @@
 1.0.0b6
 ----------------------------------------
 
-- fix recursive import issue resulting in a superflous KeyError 
+- fix recursive import issue resulting in a superflous KeyError
 - default to __version__ '0' and not set __loader__ or __path__ at all if it
   doesn't exist on the underlying init module
 
@@ -44,12 +47,12 @@
 ----------------------------------------
 
 - fixed MANIFEST.in
-- also transfer __loader__ attribute (thanks Ralf Schmitt) 
-- compat fix for BPython 
+- also transfer __loader__ attribute (thanks Ralf Schmitt)
+- compat fix for BPython
 
 1.0.0b3 (compared to 1.0.0b2)
 ------------------------------------
 
-- added special __onfirstaccess__ attribute whose value will 
-  be called on the first attribute access of an apimodule. 
+- added special __onfirstaccess__ attribute whose value will
+  be called on the first attribute access of an apimodule.
 
