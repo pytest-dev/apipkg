@@ -48,6 +48,8 @@ def initpkg(pkgname, exportdefs, attr=dict(), eager=False):
     d['__file__'] = f
     if hasattr(oldmod, '__version__'):
         d['__version__'] = oldmod.__version__
+    elif distribution_version(pkgname) is not None:
+        d['__version__'] = distribution_version(pkgname)
     if hasattr(oldmod, '__loader__'):
         d['__loader__'] = oldmod.__loader__
     if hasattr(oldmod, '__path__'):
@@ -59,7 +61,7 @@ def initpkg(pkgname, exportdefs, attr=dict(), eager=False):
         oldmod.__dict__.update(d)
     mod = ApiModule(pkgname, exportdefs, implprefix=pkgname, attr=d)
     sys.modules[pkgname] = mod
-    # eaerload in bypthon to avoid their monkeypatching breaking packages
+    # eagerload in bypthon to avoid their monkeypatching breaking packages
     if 'bpython' in sys.modules or eager:
         for module in sys.modules.values():
             if isinstance(module, ApiModule):
