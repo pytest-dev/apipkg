@@ -531,3 +531,15 @@ def test_initpkg_without_old_module():
 def test_get_distribution_version():
     assert apipkg.distribution_version('setuptools') is not None
     assert apipkg.distribution_version('email') is None
+
+
+def test_eagerload_on_bython(monkeypatch):
+    monkeypatch.delitem(sys.modules, 'bpython', raising=False)
+    apipkg.initpkg(
+        'apipkg.testmodule.example.lazy',
+        {'test': 'apipkg.does_not_exist'})
+    monkeypatch.setitem(sys.modules, 'bpython', True)
+    with pytest.raises(ImportError):
+        apipkg.initpkg(
+            'apipkg.testmodule.example.lazy',
+            {'test': 'apipkg.does_not_exist'})

@@ -38,7 +38,7 @@ def distribution_version(name):
 __version__ = distribution_version(__name__)
 
 
-def initpkg(pkgname, exportdefs, attr=dict()):
+def initpkg(pkgname, exportdefs, attr=dict(), eager=False):
     """ initialize given package from the export definitions. """
     oldmod = sys.modules.get(pkgname)
     d = {}
@@ -59,6 +59,11 @@ def initpkg(pkgname, exportdefs, attr=dict()):
         oldmod.__dict__.update(d)
     mod = ApiModule(pkgname, exportdefs, implprefix=pkgname, attr=d)
     sys.modules[pkgname] = mod
+    # eaerload in bypthon to avoid their monkeypatching breaking packages
+    if 'bpython' in sys.modules or eager:
+        for module in sys.modules.values():
+            if isinstance(module, ApiModule):
+                module.__dict__
 
 
 def importobj(modpath, attrname):
