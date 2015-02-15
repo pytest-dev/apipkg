@@ -11,7 +11,7 @@
   obtain the current version number of a package from install metadata
   its used by default with the package name
 - add an eagerloading option and eagerload automatically
-  if bpython is used
+  if bpython is used (workaround for their monkeypatching)
 
 1.2
 ----------------------------------------
