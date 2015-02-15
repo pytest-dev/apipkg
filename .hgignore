@@ -13,4 +13,5 @@ syntax:glob
 build
 dist
 apipkg.egg-info
-
+.cache/
+.eggs/

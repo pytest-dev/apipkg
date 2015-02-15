@@ -11,6 +11,7 @@ from types import ModuleType
 
 __version__ = '1.3.dev'
 
+
 def _py_abspath(path):
     """
     special version of abspath
@@ -21,6 +22,7 @@ def _py_abspath(path):
         return path
     else:
         return os.path.abspath(path)
+
 
 def initpkg(pkgname, exportdefs, attr=dict()):
     """ initialize given package from the export definitions. """
@@ -44,6 +46,7 @@ def initpkg(pkgname, exportdefs, attr=dict()):
     mod = ApiModule(pkgname, exportdefs, implprefix=pkgname, attr=d)
     sys.modules[pkgname] = mod
 
+
 def importobj(modpath, attrname):
     module = __import__(modpath, None, None, ['__doc__'])
     if not attrname:
@@ -55,6 +58,7 @@ def importobj(modpath, attrname):
         retval = getattr(retval, x)
     return retval
 
+
 class ApiModule(ModuleType):
     def __docget(self):
         try:
@@ -62,6 +66,7 @@ class ApiModule(ModuleType):
         except AttributeError:
             if '__doc__' in self.__map__:
                 return self.__makeattr('__doc__')
+
     def __docset(self, value):
         self.__doc = value
     __doc__ = property(__docget, __docset)
@@ -132,8 +137,10 @@ class ApiModule(ModuleType):
 
     __getattr__ = __makeattr
 
+    @property
     def __dict__(self):
-        # force all the content of the module to be loaded when __dict__ is read
+        # force all the content of the module
+        # to be loaded when __dict__ is read
         dictdescr = ModuleType.__dict__['__dict__']
         dict = dictdescr.__get__(self)
         if dict is not None:
@@ -144,7 +151,6 @@ class ApiModule(ModuleType):
                 except AttributeError:
                     pass
         return dict
-    __dict__ = property(__dict__)
 
 
 def AliasModule(modname, modpath, attrname=None):
