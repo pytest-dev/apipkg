@@ -5,16 +5,20 @@ compatible to CPython 2.3 through to CPython 3.1, Jython, PyPy
 
 (c) 2009 holger krekel, Holger Krekel
 """
-
+import re
 from setuptools import setup
 
+def get_version():
+    VERSION_RE = re.compile("__version__ = \'(.*)\'", re.M)
+    with open('apipkg.py') as fp:
+        return VERSION_RE.search(fp.read()).group(1)
 
 def main():
     setup(
         name='apipkg',
         description='apipkg: namespace control and lazy-import mechanism',
         long_description=open('README.txt').read(),
-        get_version_from_scm=True,
+        version=get_version(),
         url='http://bitbucket.org/hpk42/apipkg',
         license='MIT License',
         platforms=['unix', 'linux', 'osx', 'cygwin', 'win32'],
@@ -30,9 +34,6 @@ def main():
             'Topic :: Software Development :: Libraries',
             'Programming Language :: Python'],
         py_modules=['apipkg'],
-        setup_requires=[
-            'hgdistver'
-        ]
     )
 
 if __name__ == '__main__':

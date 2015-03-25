@@ -10,6 +10,9 @@ import sys
 from types import ModuleType
 
 
+__version__ = '1.4.dev1'
+
+
 def _py_abspath(path):
     """
     special version of abspath
@@ -34,10 +37,6 @@ def distribution_version(name):
         return dist.version
 
 
-# this will yield wrong data for vendore versions
-__version__ = distribution_version(__name__)
-
-
 def initpkg(pkgname, exportdefs, attr=dict(), eager=False):
     """ initialize given package from the export definitions. """
     oldmod = sys.modules.get(pkgname)
@@ -48,8 +47,6 @@ def initpkg(pkgname, exportdefs, attr=dict(), eager=False):
     d['__file__'] = f
     if hasattr(oldmod, '__version__'):
         d['__version__'] = oldmod.__version__
-    elif distribution_version(pkgname) is not None:
-        d['__version__'] = distribution_version(pkgname)
     if hasattr(oldmod, '__loader__'):
         d['__loader__'] = oldmod.__loader__
     if hasattr(oldmod, '__path__'):
@@ -140,6 +137,7 @@ class ApiModule(ModuleType):
         if '__onfirstaccess__' in self.__map__:
             target = self.__map__.pop('__onfirstaccess__')
             importobj(*target)()
+        if '__name__'
         try:
             modpath, attrname = self.__map__[name]
         except KeyError:
