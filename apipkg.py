@@ -137,7 +137,6 @@ class ApiModule(ModuleType):
         if '__onfirstaccess__' in self.__map__:
             target = self.__map__.pop('__onfirstaccess__')
             importobj(*target)()
-        if '__name__'
         try:
             modpath, attrname = self.__map__[name]
         except KeyError:
