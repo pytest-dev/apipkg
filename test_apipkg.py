@@ -543,10 +543,3 @@ def test_eagerload_on_bython(monkeypatch):
         apipkg.initpkg(
             'apipkg.testmodule.example.lazy',
             {'test': 'apipkg.does_not_exist'})
-
-
-def test_autoset_version_attribute_from_distribution(monkeypatch):
-    monkeypatch.setitem(sys.modules, 'setuptools', None)
-    apipkg.initpkg('setuptools', {})
-
-    assert sys.modules['setuptools'].__version__
