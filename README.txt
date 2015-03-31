@@ -11,9 +11,6 @@ command line completion tools.
 Usage is very simple: you can require 'apipkg' as a dependency or you
 can copy paste the <200 Lines of code into your project.
 
-As extra it will automatically set package.__version__
-to your distribution version.
-
 
 Tutorial example
 -------------------
