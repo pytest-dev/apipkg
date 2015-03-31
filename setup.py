@@ -1,17 +1,12 @@
-"""
-apipkg: namespace control and lazy-import mechanism.
-
-compatible to CPython 2.3 through to CPython 3.1, Jython, PyPy
-
-(c) 2009 holger krekel, Holger Krekel
-"""
 import re
 from setuptools import setup
+
 
 def get_version():
     VERSION_RE = re.compile("__version__ = \'(.*)\'", re.M)
     with open('apipkg.py') as fp:
         return VERSION_RE.search(fp.read()).group(1)
+
 
 def main():
     setup(
