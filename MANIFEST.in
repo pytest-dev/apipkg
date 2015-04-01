@@ -1,0 +1,4 @@
+include tox.ini
+include setup.cfg
+include CHANGELOG
+include test_apipkg.py
