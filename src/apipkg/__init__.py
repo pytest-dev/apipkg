@@ -9,9 +9,7 @@ import os
 import sys
 from types import ModuleType
 
-
-__version__ = '1.5.dev1'
-
+from .version import version as __version__
 
 def _py_abspath(path):
     """

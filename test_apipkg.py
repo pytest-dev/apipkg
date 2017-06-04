@@ -383,8 +383,8 @@ def test_bpython_getattr_override(tmpdir, monkeypatch):
     assert 'abspath' in d
 
 
-def test_chdir_with_relative_imports_shouldnt_break_lazy_loading(tmpdir):
-    tmpdir.join('apipkg.py').write(py.code.Source(apipkg))
+def test_chdir_with_relative_imports_support_lazy_loading(tmpdir, monkeypatch):
+    monkeypatch.syspath_prepend(py.path.local('src'))
     pkg = tmpdir.mkdir('pkg')
     tmpdir.mkdir('messy')
     pkg.join('__init__.py').write(py.code.Source("""
