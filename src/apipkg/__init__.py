@@ -35,8 +35,9 @@ def distribution_version(name):
         return dist.version
 
 
-def initpkg(pkgname, exportdefs, attr=dict(), eager=False):
+def initpkg(pkgname, exportdefs, attr=None, eager=False):
     """ initialize given package from the export definitions. """
+    attr = attr or {}
     oldmod = sys.modules.get(pkgname)
     d = {}
     f = getattr(oldmod, '__file__', None)
@@ -64,6 +65,7 @@ def initpkg(pkgname, exportdefs, attr=dict(), eager=False):
 
 
 def importobj(modpath, attrname):
+    """imports a module, then resolves the attrname on it"""
     module = __import__(modpath, None, None, ['__doc__'])
     if not attrname:
         return module
@@ -76,6 +78,7 @@ def importobj(modpath, attrname):
 
 
 class ApiModule(ModuleType):
+    """the magical lazy-loading module standing"""
     def __docget(self):
         try:
             return self.__doc
