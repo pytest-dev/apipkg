@@ -1,0 +1,5 @@
+src/apipkg/version.py
+__pycache__
+*.egg-info
+.cache/
+.eggs/
