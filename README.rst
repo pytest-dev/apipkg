@@ -70,7 +70,7 @@ then import the ``initpkg`` function from that new place and
 are good to go.
 
 .. _`small pure python module`:
-.. _`apipkg.py`: http://bitbucket.org/hpk42/apipkg/src/tip/apipkg.py
+.. _`apipkg.py`: https://github.com/pytest-dev/apipkg/blob/master/src/apipkg/__init__.py
 
 Feedback?
 -----------------------
@@ -78,8 +78,7 @@ Feedback?
 If you have questions you are welcome to
 
 * join the #pylib channel on irc.freenode.net
-* subscribe to the http://codespeak.net/mailman/listinfo/py-dev list.
-* create an issue on http://bitbucket.org/hpk42/apipkg/issues
+* create an issue on https://github.com/pytest-dev/apipkg/issues
 
 have fun,
 holger krekel
