@@ -11,6 +11,7 @@ def main():
         name='apipkg',
         description='apipkg: namespace control and lazy-import mechanism',
         long_description=readme(),
+        python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
         setup_requires=[
             'setuptools_scm',
             'setuptools>=30.3.0',  # introduced setup.cfg metadata
