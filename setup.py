@@ -1,4 +1,3 @@
-import re
 from setuptools import setup, find_packages
 
 
@@ -34,8 +33,9 @@ def main():
             'Operating System :: Microsoft :: Windows',
             'Operating System :: MacOS :: MacOS X',
             'Topic :: Software Development :: Libraries',
-            # Specify the Python versions you support here. In particular, ensure
-            # that you indicate whether you support Python 2, Python 3 or both.
+            # Specify the Python versions you support here.
+            # In particular,  ensure that you indicate whether
+            # you support Python 2, Python 3 or both.
             'Programming Language :: Python',
             'Programming Language :: Python :: 2',
             'Programming Language :: Python :: 2.7',
@@ -43,10 +43,11 @@ def main():
             'Programming Language :: Python :: 3.4',
             'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
-        ],        
+        ],
         packages=find_packages('src'),
         package_dir={'': 'src'},
     )
+
 
 if __name__ == '__main__':
     main()
