@@ -18,7 +18,7 @@ def main():
         use_scm_version={
             'write_to': 'src/apipkg/version.py'
         },
-        url='http://github.com/pytest-dev/apipkg',
+        url='https://github.com/pytest-dev/apipkg',
         license='MIT License',
         platforms=['unix', 'linux', 'osx', 'cygwin', 'win32'],
         author='holger krekel',
