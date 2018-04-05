@@ -59,7 +59,7 @@ def initpkg(pkgname, exportdefs, attr=None, eager=False):
     sys.modules[pkgname] = mod
     # eagerload in bypthon to avoid their monkeypatching breaking packages
     if 'bpython' in sys.modules or eager:
-        for module in sys.modules.values():
+        for module in list(sys.modules.values()):
             if isinstance(module, ApiModule):
                 module.__dict__
 
