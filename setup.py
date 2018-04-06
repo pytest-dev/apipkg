@@ -1,4 +1,3 @@
-import re
 from setuptools import setup, find_packages
 
 
@@ -12,6 +11,7 @@ def main():
         name='apipkg',
         description='apipkg: namespace control and lazy-import mechanism',
         long_description=readme(),
+        python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
         setup_requires=[
             'setuptools_scm',
             'setuptools>=30.3.0',  # introduced setup.cfg metadata
@@ -19,7 +19,7 @@ def main():
         use_scm_version={
             'write_to': 'src/apipkg/version.py'
         },
-        url='http://github.com/pytest-dev/apipkg',
+        url='https://github.com/pytest-dev/apipkg',
         license='MIT License',
         platforms=['unix', 'linux', 'osx', 'cygwin', 'win32'],
         author='holger krekel',
@@ -34,8 +34,9 @@ def main():
             'Operating System :: Microsoft :: Windows',
             'Operating System :: MacOS :: MacOS X',
             'Topic :: Software Development :: Libraries',
-            # Specify the Python versions you support here. In particular, ensure
-            # that you indicate whether you support Python 2, Python 3 or both.
+            # Specify the Python versions you support here.
+            # In particular,  ensure that you indicate whether
+            # you support Python 2, Python 3 or both.
             'Programming Language :: Python',
             'Programming Language :: Python :: 2',
             'Programming Language :: Python :: 2.7',
@@ -43,10 +44,11 @@ def main():
             'Programming Language :: Python :: 3.4',
             'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
-        ],        
+        ],
         packages=find_packages('src'),
         package_dir={'': 'src'},
     )
+
 
 if __name__ == '__main__':
     main()

@@ -85,7 +85,7 @@ class TestRealModule:
     def test_realmodule___doc__(self):
         """test whether the __doc__ attribute is set properly from initpkg"""
         import realtest.x.module
-        print (realtest.x.module.__map__)
+        print(realtest.x.module.__map__)
         assert realtest.x.module.__doc__ == 'test module'
 
 
@@ -121,7 +121,7 @@ class TestScenarios:
         pkgdir.join('submod.py').write(py.code.Source("""
             import recmodule
             class someclass: pass
-            print (recmodule.__dict__)
+            print(recmodule.__dict__)
         """))
         monkeypatch.syspath_prepend(tmpdir)
         import recmodule
@@ -174,7 +174,7 @@ def test_parsenamespace():
         test.raises   __.test.outcome::raises
     """
     d = parsenamespace(spec)
-    print (d)
+    print(d)
     assert d == {
         'test': {'raises': '__.test.outcome::raises'},
         'path': {
@@ -364,7 +364,7 @@ def test_onfirstaccess_setsnewattr(tmpdir, monkeypatch, mode):
     if mode == 'attr':
         assert mod.newattr == 42
     elif mode == "dict":
-        print (list(mod.__dict__.keys()))
+        print(list(mod.__dict__.keys()))
         assert 'newattr' in mod.__dict__
     elif mode == "onfirst":
         assert not hasattr(mod, '__onfirstaccess__')

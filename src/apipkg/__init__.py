@@ -1,7 +1,7 @@
 """
-apipkg: control the exported namespace of a python package.
+apipkg: control the exported namespace of a Python package.
 
-see http://pypi.python.org/pypi/apipkg
+see https://pypi.python.org/pypi/apipkg
 
 (c) holger krekel, 2009 - MIT license
 """
@@ -10,6 +10,7 @@ import sys
 from types import ModuleType
 
 from .version import version as __version__
+
 
 def _py_abspath(path):
     """
@@ -122,13 +123,13 @@ class ApiModule(ModuleType):
                     self.__map__[name] = (modpath, attrname)
 
     def __repr__(self):
-        l = []
+        repr_list = []
         if hasattr(self, '__version__'):
-            l.append("version=" + repr(self.__version__))
+            repr_list.append("version=" + repr(self.__version__))
         if hasattr(self, '__file__'):
-            l.append('from ' + repr(self.__file__))
-        if l:
-            return '<ApiModule %r %s>' % (self.__name__, " ".join(l))
+            repr_list.append('from ' + repr(self.__file__))
+        if repr_list:
+            return '<ApiModule %r %s>' % (self.__name__, " ".join(repr_list))
         return '<ApiModule %r>' % (self.__name__,)
 
     def __makeattr(self, name):
