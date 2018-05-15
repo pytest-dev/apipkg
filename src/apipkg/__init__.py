@@ -51,6 +51,8 @@ def initpkg(pkgname, exportdefs, attr=None, eager=False):
         d['__loader__'] = oldmod.__loader__
     if hasattr(oldmod, '__path__'):
         d['__path__'] = [_py_abspath(p) for p in oldmod.__path__]
+    if hasattr(oldmod, '__package__'):
+        d['__package__'] = oldmod.__package__
     if '__doc__' not in exportdefs and getattr(oldmod, '__doc__', None):
         d['__doc__'] = oldmod.__doc__
     d.update(attr)
