@@ -1,3 +1,12 @@
+1.5
+----
+
+- switch to setuptools_scm
+- move to github
+- fix up python compat matrix
+- avoid dict iteration (fixes issue on python3)
+- 
+
 1.4
 -----------------
 
