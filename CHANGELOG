@@ -5,7 +5,8 @@
 - move to github
 - fix up python compat matrix
 - avoid dict iteration (fixes issue on python3)
-- 
+- preserve __package__ - ths gets us better pep 302 compliance
+
 
 1.4
 -----------------
