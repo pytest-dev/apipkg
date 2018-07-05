@@ -23,7 +23,6 @@ def main():
         license='MIT License',
         platforms=['unix', 'linux', 'osx', 'cygwin', 'win32'],
         author='holger krekel',
-        author_email='holger at merlinux.eu',
         maintainer="Ronny Pfannschmidt",
         maintainer_email="opensource@ronnypfannschmidt.de",
         classifiers=[
