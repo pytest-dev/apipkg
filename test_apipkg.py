@@ -320,8 +320,10 @@ def test_error_loading_one_element(monkeypatch, tmpdir):
     import errorloading1
     assert isinstance(errorloading1, apipkg.ApiModule)
     assert errorloading1.y == 0
-    pytest.raises(ImportError, 'errorloading1.x')
-    pytest.raises(ImportError, 'errorloading1.x')
+    with pytest.raises(ImportError):
+        errorloading1.x
+    with pytest.raises(ImportError):
+        errorloading1.x
 
 
 def test_onfirstaccess(tmpdir, monkeypatch):
@@ -493,7 +495,9 @@ def test_aliasmodule_proxy_methods(tmpdir, monkeypatch):
     assert doit is orig.doit
 
     del proxy.doit
-    pytest.raises(AttributeError, "orig.doit")
+    
+    with pytest.raises(AttributeError):
+        orig.doit
 
     proxy.doit = doit
     assert orig.doit is doit
