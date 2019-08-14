@@ -13,42 +13,59 @@ ModuleType = types.ModuleType
 
 class TestRealModule:
 
-    def setup_class(cls):
-        cls.tmpdir = pytest.ensuretemp('test_apipkg')
-        sys.path = [str(cls.tmpdir)] + sys.path
-        pkgdir = cls.tmpdir.ensure('realtest', dir=1)
+    @staticmethod
+    def _ensure_dir(parent, d):
+        if not parent.exists():
+            parent.mkdir()
+        dir_ = parent / d
+        if not dir_.exists():
+            dir_.mkdir()
 
-        tfile = pkgdir.join('__init__.py')
-        tfile.write(textwrap.dedent("""
-            import apipkg
-            apipkg.initpkg(__name__, {
-                'x': {
-                    'module': {
-                        '__doc__': '_xyz.testmodule:__doc__',
-                        'mytest0': '_xyz.testmodule:mytest0',
-                        'mytest1': '_xyz.testmodule:mytest1',
-                        'MyTest':  '_xyz.testmodule:MyTest',
+        return dir_
+
+    @classmethod
+    @pytest.fixture(autouse=True, scope='function')
+    def create_code(cls, tmp_path):
+        cls.tmpdir = tmp_path / 'test_apipkg'
+        sys.path = [str(cls.tmpdir)] + sys.path
+        pkgdir = cls._ensure_dir(cls.tmpdir, 'realtest')
+
+        tfile = pkgdir / '__init__.py'
+        with tfile.open("w") as _:
+            _.write(textwrap.dedent("""
+                import apipkg
+                apipkg.initpkg(__name__, {
+                    'x': {
+                        'module': {
+                            '__doc__': '_xyz.testmodule:__doc__',
+                            'mytest0': '_xyz.testmodule:mytest0',
+                            'mytest1': '_xyz.testmodule:mytest1',
+                            'MyTest':  '_xyz.testmodule:MyTest',
+                        }
                     }
                 }
-            }
-            )
-        """))
+                )
+            """))
 
-        ipkgdir = cls.tmpdir.ensure("_xyz", dir=1)
-        tfile = ipkgdir.join('testmodule.py')
-        ipkgdir.ensure("__init__.py")
-        tfile.write(textwrap.dedent("""
-            'test module'
-            from _xyz.othermodule import MyTest
 
-            #__all__ = ['mytest0', 'mytest1', 'MyTest']
+        ipkgdir = cls._ensure_dir(cls.tmpdir, "_xyz")
+        tfile = ipkgdir / 'testmodule.py'
+        ipkgdir.touch("__init__.py")
+        with tfile.open("w") as _:
+            _.write(textwrap.dedent("""
+                'test module'
+                from _xyz.othermodule import MyTest
 
-            def mytest0():
-                pass
-            def mytest1():
-                pass
-        """))
-        ipkgdir.join("othermodule.py").write("class MyTest: pass")
+                #__all__ = ['mytest0', 'mytest1', 'MyTest']
+
+                def mytest0():
+                    pass
+                def mytest1():
+                    pass
+            """))
+        cls_file = ipkgdir / "othermodule.py"
+        with cls_file.open("w") as _:
+            _.write("class MyTest: pass")
 
     def setup_method(self, *args):
         # Unload the test modules before each test.
@@ -185,12 +202,10 @@ def test_parsenamespace():
 
 
 def xtest_parsenamespace_errors():
-    pytest.raises(ValueError, """
+    with pytest.raises(ValueError):
         parsenamespace('path.local xyz')
-    """)
-    pytest.raises(ValueError, """
+    with pytest.raises(ValueError):
         parsenamespace('x y z')
-    """)
 
 
 def parsenamespace(spec):
@@ -320,8 +335,10 @@ def test_error_loading_one_element(monkeypatch, tmpdir):
     import errorloading1
     assert isinstance(errorloading1, apipkg.ApiModule)
     assert errorloading1.y == 0
-    pytest.raises(ImportError, 'errorloading1.x')
-    pytest.raises(ImportError, 'errorloading1.x')
+    with pytest.raises(ImportError):
+        errorloading1.x
+    with pytest.raises(ImportError):
+        errorloading1.x
 
 
 def test_onfirstaccess(tmpdir, monkeypatch):
@@ -493,7 +510,8 @@ def test_aliasmodule_proxy_methods(tmpdir, monkeypatch):
     assert doit is orig.doit
 
     del proxy.doit
-    pytest.raises(AttributeError, "orig.doit")
+    with pytest.raises(AttributeError):
+        orig.doit
 
     proxy.doit = doit
     assert orig.doit is doit

@@ -62,9 +62,14 @@ def initpkg(pkgname, exportdefs, attr=None, eager=False):
     sys.modules[pkgname] = mod
     # eagerload in bypthon to avoid their monkeypatching breaking packages
     if 'bpython' in sys.modules or eager:
-        for module in list(sys.modules.values()):
-            if isinstance(module, ApiModule):
-                module.__dict__
+        # calling __dict__ can import further modules
+        # this avoids changing size during iteration
+        api_modules = [
+            module for module in list(sys.modules.values())
+            if isinstance(module, ApiModule)
+        ]
+        for module in api_modules:
+            module.__dict__
 
 
 def importobj(modpath, attrname):
