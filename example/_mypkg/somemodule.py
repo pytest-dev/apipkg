@@ -1,5 +1,5 @@
+from _mypkg.othermodule import OtherClass  # NOQA: F401
 
-from _mypkg.othermodule import OtherClass
 
 class SomeClass:
     pass
