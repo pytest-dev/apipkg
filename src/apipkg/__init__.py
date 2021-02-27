@@ -180,8 +180,32 @@ class ApiModule(ModuleType):
         return dict
 
 
-def AliasModule(modname, modpath, attrname=None):
+def _py_test_hack(modpath, attrname, importerror_alternative):
+    if (
+        modpath == "pytest"
+        and attrname is None
+        and importerror_alternative is ImportError
+    ):
+        return None
+    else:
+        return importerror_alternative
+
+
+def _alias_mod_repr(modname, modpath, attrname, importerror_alternative):
+    x = modpath
+    if attrname:
+        x += "." + attrname
+    if importerror_alternative is not ImportError:
+        return "<AliasModule {!r} for {!r} alternative {!r}>".format(
+            modname, x, importerror_alternative
+        )
+    else:
+        return "<AliasModule {!r} for {!r}>".format(modname, x)
+
+
+def AliasModule(modname, modpath, attrname=None, importerror_alternative=ImportError):
     mod = []
+    importerror_alternative = _py_test_hack(modpath, attrname, importerror_alternative)
 
     def getmod():
         if not mod:
@@ -191,18 +215,20 @@ def AliasModule(modname, modpath, attrname=None):
             mod.append(x)
         return mod[0]
 
+    repr_result = _alias_mod_repr(modname, modpath, attrname, importerror_alternative)
+
     class AliasModule(ModuleType):
         def __repr__(self):
-            x = modpath
-            if attrname:
-                x += "." + attrname
-            return "<AliasModule {!r} for {!r}>".format(modname, x)
+            return repr_result
 
         def __getattribute__(self, name):
             try:
                 return getattr(getmod(), name)
             except ImportError:
-                return None
+                if importerror_alternative is ImportError:
+                    raise
+                else:
+                    return importerror_alternative
 
         def __setattr__(self, name, value):
             setattr(getmod(), name, value)

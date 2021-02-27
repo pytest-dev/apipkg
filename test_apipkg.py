@@ -551,11 +551,33 @@ def test_aliasmodule_aliases_an_attribute():
     assert not hasattr(am, "lqkje")
 
 
-def test_aliasmodule_aliases_unimportable():
+def test_aliasmodule_aliases_unimportable_fails():
     am = apipkg.AliasModule("mymod", "qlwkejqlwe", "main")
     r = repr(am)
     assert "<AliasModule 'mymod' for 'qlwkejqlwe.main'>" == r
+    # this would pass starting with apipkg 1.3 to work around a pytest bug
+    with pytest.raises(ImportError):
+        am.qwe is None
+
+
+def test_aliasmodule_aliases_unimportable_can_return_none():
+    am = apipkg.AliasModule("mymod", "qlwkejqlwe", "main", None)
+    r = repr(am)
+    assert "<AliasModule 'mymod' for 'qlwkejqlwe.main' alternative None>" == r
+    # this would pass starting with apipkg 1.3 to work around a pytest bug
     assert am.qwe is None
+
+
+def test_aliasmodule_pytest_autoreturn_none_for_hack(monkeypatch):
+    def error(*k):
+        raise ImportError(k)
+
+    monkeypatch.setattr(apipkg, "importobj", error)
+    # apipkg 1.3 added this hack
+    am = apipkg.AliasModule("mymod", "pytest")
+    r = repr(am)
+    assert "<AliasModule 'mymod' for 'pytest' alternative None>" == r
+    assert am.test is None
 
 
 def test_aliasmodule_unicode():
