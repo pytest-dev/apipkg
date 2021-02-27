@@ -1,0 +1,38 @@
+name: Python application
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # todo: extract from source
+        python-version: [2.7, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9]
+        install-style: [full, editable]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -U setuptools setuptools_scm
+        pip install pytest
+
+    - name: install editable
+      run: pip install -e .
+      if: matrix.install-style=='editable'
+    - name: install full
+      run: pip install .
+
+      if: matrix.install-style=='full'
+
+    - name: pytest
+      run: pytest
