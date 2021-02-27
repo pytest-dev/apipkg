@@ -668,3 +668,45 @@ def test_eagerload_on_bython(monkeypatch):
         apipkg.initpkg(
             "apipkg.testmodule.example.lazy", {"test": "apipkg.does_not_exist"}
         )
+
+
+@pytest.fixture
+def find_spec():
+    try:
+        from importlib.util import find_spec
+    except ImportError:
+        pytest.xfail("no importlib")
+    return find_spec
+
+
+def test_importlib_find_spec_fake_module(find_spec):
+    mod = apipkg.initpkg("apipkg.testmodule.example.missing", {})
+    with pytest.raises(ValueError, match=mod.__name__ + r"\.__spec__ is None"):
+        find_spec(mod.__name__)
+
+
+def test_importlib_find_spec_aliasmodule(find_spec):
+    am = apipkg.AliasModule("apipkg.testmodule.example.email_spec", "email")
+    spec = find_spec(am.__name__)
+    assert spec is am.__spec__
+
+
+def test_importlib_find_spec_initpkg(find_spec, tmpdir, monkeypatch):
+
+    modname = "apipkg_test_example_initpkg_findspec"
+
+    pkgdir = tmpdir.mkdir("apipkg_test_example_initpkg_findspec")
+    pkgdir.ensure("__init__.py").write(
+        textwrap.dedent(
+            """
+        import apipkg
+        apipkg.initpkg(__name__, {
+            'email': 'email',
+            })
+    """
+        )
+    )
+
+    monkeypatch.syspath_prepend(tmpdir)
+    find_spec(modname)
+    find_spec(modname + ".email")

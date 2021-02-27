@@ -56,6 +56,7 @@ def initpkg(pkgname, exportdefs, attr=None, eager=False):
         d["__package__"] = oldmod.__package__
     if "__doc__" not in exportdefs and getattr(oldmod, "__doc__", None):
         d["__doc__"] = oldmod.__doc__
+    d["__spec__"] = getattr(oldmod, "__spec__", None)
     d.update(attr)
     if hasattr(oldmod, "__dict__"):
         oldmod.__dict__.update(d)
@@ -66,6 +67,7 @@ def initpkg(pkgname, exportdefs, attr=None, eager=False):
         for module in list(sys.modules.values()):
             if isinstance(module, ApiModule):
                 module.__dict__
+    return mod
 
 
 def importobj(modpath, attrname):
