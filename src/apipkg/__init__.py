@@ -191,13 +191,6 @@ def _py_test_hack(modpath, attrname, importerror_alternative):
         return importerror_alternative
 
 
-def _alias_mod_repr(modname, modpath, attrname):
-    x = modpath
-    if attrname:
-        x += "." + attrname
-    return "<AliasModule {!r} for {!r}>".format(modname, x)
-
-
 def AliasModule(modname, modpath, attrname=None):
     mod = []
 
@@ -209,7 +202,8 @@ def AliasModule(modname, modpath, attrname=None):
             mod.append(x)
         return mod[0]
 
-    repr_result = _alias_mod_repr(modname, modpath, attrname)
+    x = modpath + ("." + attrname) if attrname else ""
+    repr_result = "<AliasModule {!r} for {!r}>".format(modname, x)
 
     class AliasModule(ModuleType):
         def __repr__(self):
