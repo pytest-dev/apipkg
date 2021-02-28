@@ -180,17 +180,6 @@ class ApiModule(ModuleType):
         return dict
 
 
-def _py_test_hack(modpath, attrname, importerror_alternative):
-    if (
-        modpath == "pytest"
-        and attrname is None
-        and importerror_alternative is ImportError
-    ):
-        return None
-    else:
-        return importerror_alternative
-
-
 def AliasModule(modname, modpath, attrname=None):
     mod = []
 
