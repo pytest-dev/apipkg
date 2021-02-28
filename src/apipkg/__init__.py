@@ -191,18 +191,22 @@ def AliasModule(modname, modpath, attrname=None):
             mod.append(x)
         return mod[0]
 
+    x = modpath + ("." + attrname if attrname else "")
+    repr_result = "<AliasModule {!r} for {!r}>".format(modname, x)
+
     class AliasModule(ModuleType):
         def __repr__(self):
-            x = modpath
-            if attrname:
-                x += "." + attrname
-            return "<AliasModule {!r} for {!r}>".format(modname, x)
+            return repr_result
 
         def __getattribute__(self, name):
             try:
                 return getattr(getmod(), name)
             except ImportError:
-                return None
+                if modpath == "pytest" and attrname is None:
+                    # hack for pylibs py.test
+                    return None
+                else:
+                    raise
 
         def __setattr__(self, name, value):
             setattr(getmod(), name, value)
