@@ -560,14 +560,6 @@ def test_aliasmodule_aliases_unimportable_fails():
         am.qwe is None
 
 
-def test_aliasmodule_aliases_unimportable_can_return_none():
-    am = apipkg.AliasModule("mymod", "qlwkejqlwe", "main", None)
-    r = repr(am)
-    assert "<AliasModule 'mymod' for 'qlwkejqlwe.main' alternative None>" == r
-    # this would pass starting with apipkg 1.3 to work around a pytest bug
-    assert am.qwe is None
-
-
 def test_aliasmodule_pytest_autoreturn_none_for_hack(monkeypatch):
     def error(*k):
         raise ImportError(k)
@@ -576,7 +568,7 @@ def test_aliasmodule_pytest_autoreturn_none_for_hack(monkeypatch):
     # apipkg 1.3 added this hack
     am = apipkg.AliasModule("mymod", "pytest")
     r = repr(am)
-    assert "<AliasModule 'mymod' for 'pytest' alternative None>" == r
+    assert "<AliasModule 'mymod' for 'pytest'>" == r
     assert am.test is None
 
 

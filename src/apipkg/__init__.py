@@ -191,21 +191,15 @@ def _py_test_hack(modpath, attrname, importerror_alternative):
         return importerror_alternative
 
 
-def _alias_mod_repr(modname, modpath, attrname, importerror_alternative):
+def _alias_mod_repr(modname, modpath, attrname):
     x = modpath
     if attrname:
         x += "." + attrname
-    if importerror_alternative is not ImportError:
-        return "<AliasModule {!r} for {!r} alternative {!r}>".format(
-            modname, x, importerror_alternative
-        )
-    else:
-        return "<AliasModule {!r} for {!r}>".format(modname, x)
+    return "<AliasModule {!r} for {!r}>".format(modname, x)
 
 
-def AliasModule(modname, modpath, attrname=None, importerror_alternative=ImportError):
+def AliasModule(modname, modpath, attrname=None):
     mod = []
-    importerror_alternative = _py_test_hack(modpath, attrname, importerror_alternative)
 
     def getmod():
         if not mod:
@@ -215,7 +209,7 @@ def AliasModule(modname, modpath, attrname=None, importerror_alternative=ImportE
             mod.append(x)
         return mod[0]
 
-    repr_result = _alias_mod_repr(modname, modpath, attrname, importerror_alternative)
+    repr_result = _alias_mod_repr(modname, modpath, attrname)
 
     class AliasModule(ModuleType):
         def __repr__(self):
@@ -225,10 +219,11 @@ def AliasModule(modname, modpath, attrname=None, importerror_alternative=ImportE
             try:
                 return getattr(getmod(), name)
             except ImportError:
-                if importerror_alternative is ImportError:
-                    raise
+                if modpath == "pytest" and attrname is None:
+                    # hack for pylibs py.test
+                    return None
                 else:
-                    return importerror_alternative
+                    raise
 
         def __setattr__(self, name, value):
             setattr(getmod(), name, value)
