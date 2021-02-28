@@ -191,7 +191,7 @@ def AliasModule(modname, modpath, attrname=None):
             mod.append(x)
         return mod[0]
 
-    x = modpath + ("." + attrname) if attrname else ""
+    x = modpath + ("." + attrname if attrname else "")
     repr_result = "<AliasModule {!r} for {!r}>".format(modname, x)
 
     class AliasModule(ModuleType):
