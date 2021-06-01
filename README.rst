@@ -76,7 +76,10 @@ Feedback?
 
 If you have questions you are welcome to
 
-* join the #pylib channel on irc.freenode.net
+* join the #pytest channel `on irc.libera.chat
+<ircs://irc.libera.chat:6697/#pytest>`_ (using an IRC client, `via webchat
+<https://web.libera.chat/#pytest>`_, or `via Matrix
+<https://matrix.to/#/%23pytest:libera.chat>`_).
 * create an issue on https://github.com/pytest-dev/apipkg/issues
 
 have fun,
