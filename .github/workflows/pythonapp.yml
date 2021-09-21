@@ -1,4 +1,4 @@
-name: python tests+artifacts+release
+name: "python tests+artifacts+release"
 
 on:
   pull_request:
@@ -12,7 +12,7 @@ on:
 
 
 jobs:
-   dist:
+  dist:
     runs-on: ubuntu-latest
     name: Python sdist/wheel
     steps:
@@ -31,7 +31,6 @@ jobs:
       with:
         name: dist
         path: dist
-
 
   test:
     runs-on: ubuntu-latest
@@ -64,27 +63,6 @@ jobs:
     - name: pytest
       run: pytest
 
-
-jobs:
-  
-
-  mypy:
-    runs-on: ubuntu-latest
-    
-    name: Python ${{ matrix.python_version }} - dist ${{ matrix.dist }}
-    steps:
-      - uses: actions/checkout@v1
-      - name: Setup python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python_version }}
-          architecture: x64
-      - uses: actions/download-artifact@v2
-        with:
-          name: dist
-          path: dist
-      - run: pip install -e . mypy
-      - run: mypy -m 
 
   dist_check:
     runs-on: ubuntu-latest
