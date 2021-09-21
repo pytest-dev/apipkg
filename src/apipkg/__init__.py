@@ -7,6 +7,7 @@ see https://pypi.python.org/pypi/apipkg
 """
 import os
 import sys
+from importlib.machinery import ModuleSpec
 from types import ModuleType
 
 from .version import version as __version__  # NOQA:F401
@@ -103,6 +104,7 @@ class ApiModule(ModuleType):
         self.__all__ = [x for x in importspec if x != "__onfirstaccess__"]
         self.__map__ = {}
         self.__implprefix__ = implprefix or name
+        self.__spec__ = ModuleSpec(name, self.__loader__)
         if attr:
             for name, val in attr.items():
                 # print "setting", self.__name__, name, val
