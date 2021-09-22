@@ -1,5 +1,5 @@
-Welcome to apipkg!
-------------------------
+Welcome to apipkg !
+-------------------
 
 With apipkg you can control the exported namespace of a Python package and
 greatly reduce the number of imports for your users.
@@ -16,6 +16,7 @@ Tutorial example
 
 Here is a simple ``mypkg`` package that specifies one namespace
 and exports two objects imported from different modules::
+
 
     # mypkg/__init__.py
     import apipkg
@@ -76,11 +77,11 @@ Feedback?
 
 If you have questions you are welcome to
 
-* join the #pytest channel `on irc.libera.chat
-<ircs://irc.libera.chat:6697/#pytest>`_ (using an IRC client, `via webchat
-<https://web.libera.chat/#pytest>`_, or `via Matrix
-<https://matrix.to/#/%23pytest:libera.chat>`_).
-* create an issue on https://github.com/pytest-dev/apipkg/issues
+* join the **#pytest** channel on irc.libera.chat_
+  (using an IRC client, via webchat_, or via Matrix_).
+* create an issue on the bugtracker_
 
-have fun,
-holger krekel
+.. _irc.libera.chat: ircs://irc.libera.chat:6697/#pytest
+.. _webchat: https://web.libera.chat/#pytest
+.. _matrix: https://matrix.to/#/%23pytest:libera.chat
+.. _bugtracker: https://github.com/pytest-dev/apipkg/issues
