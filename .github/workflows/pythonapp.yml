@@ -58,6 +58,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -U setuptools setuptools_scm
         pip install pytest
+    - uses: actions/download-artifact@v2
+      with:
+        name: dist
+        path: dist
     - name: install editable
       run: pip install ${{ matrix.install-from }}
     - name: pytest
