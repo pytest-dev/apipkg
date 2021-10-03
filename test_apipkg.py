@@ -4,6 +4,11 @@ import sys
 import textwrap
 import types
 
+try:
+    import threading
+except ImportError:
+    pass
+
 import pytest
 
 import apipkg
@@ -454,6 +459,110 @@ def test_onfirstaccess_setsnewattr(tmpdir, monkeypatch, mode):
         assert not hasattr(mod, "__onfirstaccess__")
         assert not hasattr(mod, "__onfirstaccess__")
     assert "__onfirstaccess__" not in vars(mod)
+
+
+@pytest.mark.skipif("threading" not in sys.modules, reason="requires thread support")
+def test_onfirstaccess_race(tmpdir, monkeypatch):
+    pkgdir = tmpdir.mkdir("firstaccessrace")
+    pkgdir.join("__init__.py").write(
+        textwrap.dedent(
+            """
+        import apipkg
+        apipkg.initpkg(__name__, exportdefs={
+            '__onfirstaccess__': '.submod:init',
+            'l': '.submod:l',
+            },
+        )
+    """
+        )
+    )
+    pkgdir.join("submod.py").write(
+        textwrap.dedent(
+            """
+        import time
+        l = []
+        def init():
+            time.sleep(0.1)
+            l.append(1)
+    """
+        )
+    )
+    monkeypatch.syspath_prepend(tmpdir)
+    import firstaccessrace
+
+    assert isinstance(firstaccessrace, apipkg.ApiModule)
+
+    class TestThread(threading.Thread):
+        def __init__(self, event_start):
+            super(TestThread, self).__init__()
+            self.event_start = event_start
+            self.lenl = None
+
+        def run(self):
+            self.event_start.wait()
+            self.lenl = len(firstaccessrace.l)
+
+    event_start = threading.Event()
+    threads = [TestThread(event_start) for _ in range(8)]
+    for thread in threads:
+        thread.start()
+    event_start.set()
+    for thread in threads:
+        thread.join()
+    assert len(firstaccessrace.l) == 1
+    for thread in threads:
+        assert thread.lenl == 1
+    assert "__onfirstaccess__" not in firstaccessrace.__all__
+
+
+@pytest.mark.skipif("threading" not in sys.modules, reason="requires thread support")
+def test_attribute_race(tmpdir, monkeypatch):
+    pkgdir = tmpdir.mkdir("attributerace")
+    pkgdir.join("__init__.py").write(
+        textwrap.dedent(
+            """
+        import apipkg
+        apipkg.initpkg(__name__, exportdefs={
+            'attr': '.submod:attr',
+            },
+        )
+    """
+        )
+    )
+    pkgdir.join("submod.py").write(
+        textwrap.dedent(
+            """
+        import time
+        time.sleep(0.1)
+        attr = 42
+    """
+        )
+    )
+    monkeypatch.syspath_prepend(tmpdir)
+    import attributerace
+
+    assert isinstance(attributerace, apipkg.ApiModule)
+
+    class TestThread(threading.Thread):
+        def __init__(self, event_start):
+            super(TestThread, self).__init__()
+            self.event_start = event_start
+            self.attr = None
+
+        def run(self):
+            self.event_start.wait()
+            self.attr = attributerace.attr
+
+    event_start = threading.Event()
+    threads = [TestThread(event_start) for _ in range(8)]
+    for thread in threads:
+        thread.start()
+    event_start.set()
+    for thread in threads:
+        thread.join()
+    assert attributerace.attr == 42
+    for thread in threads:
+        assert thread.attr == 42
 
 
 def test_bpython_getattr_override(tmpdir, monkeypatch):
