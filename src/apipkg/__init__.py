@@ -9,6 +9,14 @@ import os
 import sys
 from types import ModuleType
 
+# Prior to Python 3.7 threading support was optional
+try:
+    import threading
+except ImportError:
+    threading = None
+else:
+    import functools
+
 from .version import version as __version__  # NOQA:F401
 
 
@@ -83,6 +91,22 @@ def importobj(modpath, attrname):
     return retval
 
 
+def _synchronized(wrapped_function):
+    """Decorator to synchronise __getattr__ calls."""
+    if threading is None:
+        return wrapped_function
+
+    # Lock shared between all instances of ApiModule to avoid possible deadlocks
+    lock = threading.RLock()
+
+    @functools.wraps(wrapped_function)
+    def synchronized_wrapper_function(*args, **kwargs):
+        with lock:
+            return wrapped_function(*args, **kwargs)
+
+    return synchronized_wrapper_function
+
+
 class ApiModule(ModuleType):
     """the magical lazy-loading module standing"""
 
@@ -105,7 +129,6 @@ class ApiModule(ModuleType):
         self.__implprefix__ = implprefix or name
         if attr:
             for name, val in attr.items():
-                # print "setting", self.__name__, name, val
                 setattr(self, name, val)
         for name, importspec in importspec.items():
             if isinstance(importspec, dict):
@@ -139,9 +162,9 @@ class ApiModule(ModuleType):
             return "<ApiModule {!r} {}>".format(self.__name__, " ".join(repr_list))
         return "<ApiModule {!r}>".format(self.__name__)
 
-    def __makeattr(self, name):
+    @_synchronized
+    def __makeattr(self, name, isgetattr=False):
         """lazily compute value for name or raise AttributeError if unknown."""
-        # print "makeattr", self.__name__, name
         target = None
         if "__onfirstaccess__" in self.__map__:
             target = self.__map__.pop("__onfirstaccess__")
@@ -149,9 +172,22 @@ class ApiModule(ModuleType):
         try:
             modpath, attrname = self.__map__[name]
         except KeyError:
+            # __getattr__ is called when the attribute does not exist, but it may have
+            # been set by the onfirstaccess call above. Infinite recursion is not
+            # possible as __onfirstaccess__ is removed before the call (unless the call
+            # adds __onfirstaccess__ to __map__ explicitly, which is not our problem)
             if target is not None and name != "__onfirstaccess__":
-                # retry, onfirstaccess might have set attrs
                 return getattr(self, name)
+            # Attribute may also have been set during a concurrent call to __getattr__
+            # which executed after this call was already waiting on the lock. Check
+            # for a recently set attribute while avoiding infinite recursion:
+            # * Don't call __getattribute__ if __makeattr was called from a data
+            #   descriptor such as the __doc__ or __dict__ properties, since data
+            #   descriptors are called as part of object.__getattribute__
+            # * Only call __getattribute__ if there is a possibility something has set
+            #   the attribute we're looking for since __getattr__ was called
+            if threading is not None and isgetattr:
+                return super(ApiModule, self).__getattribute__(name)
             raise AttributeError(name)
         else:
             result = importobj(modpath, attrname)
@@ -162,7 +198,8 @@ class ApiModule(ModuleType):
                 pass  # in a recursive-import situation a double-del can happen
             return result
 
-    __getattr__ = __makeattr
+    def __getattr__(self, name):
+        return self.__makeattr(name, isgetattr=True)
 
     @property
     def __dict__(self):
