@@ -1,5 +1,19 @@
+2.0.1
+----------------------------------------
+
+- fix race conditions for attribute creation
+
+2.0.0
+----------------------------------------
+
+- also transfer __spec__ attribute
+- make py.test hack more specific to avoid hiding real errors
+- switch from Travis CI to GitHub Actions
+- modernize package build
+- reformat code with black
+
 1.5
-----
+----------------------------------------
 
 - switch to setuptools_scm
 - move to github
@@ -7,12 +21,10 @@
 - avoid dict iteration (fixes issue on python3)
 - preserve __package__ - ths gets us better pep 302 compliance
 
-
 1.4
------------------
+----------------------------------------
 
 - revert the automated version gathering
-
 
 1.3
 ----------------------------------------
