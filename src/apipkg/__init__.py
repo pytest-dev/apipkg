@@ -91,7 +91,7 @@ def importobj(modpath, attrname):
     return retval
 
 
-def synchronized(wrapped_function):
+def _synchronized(wrapped_function):
     """Decorator to synchronise __getattr__ calls."""
     if threading is None:
         return wrapped_function
@@ -162,7 +162,7 @@ class ApiModule(ModuleType):
             return "<ApiModule {!r} {}>".format(self.__name__, " ".join(repr_list))
         return "<ApiModule {!r}>".format(self.__name__)
 
-    @synchronized
+    @_synchronized
     def __makeattr(self, name, isgetattr=False):
         """lazily compute value for name or raise AttributeError if unknown."""
         target = None
