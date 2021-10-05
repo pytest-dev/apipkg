@@ -13,6 +13,11 @@ import pytest
 
 import apipkg
 
+
+PY2 = sys.version_info[0] == 2
+PY3 = sys.version_info[0] == 3
+
+
 #
 # test support for importing modules
 #
@@ -270,12 +275,12 @@ def parsenamespace(spec):
     return ns
 
 
-def test_initpkg_replaces_sysmodules(monkeypatch):
+def test_initpkg_updates_sysmodules(monkeypatch):
     mod = ModuleType("hello")
     monkeypatch.setitem(sys.modules, "hello", mod)
     apipkg.initpkg("hello", {"x": "os.path:abspath"})
     newmod = sys.modules["hello"]
-    assert newmod != mod
+    assert (PY2 and newmod != mod) or (PY3 and newmod is mod)
     assert newmod.x == os.path.abspath
 
 
@@ -286,15 +291,17 @@ def test_initpkg_transfers_attrs(monkeypatch):
     mod.__loader__ = "loader"
     mod.__package__ = "package"
     mod.__doc__ = "this is the documentation"
+    mod.goodbye = "goodbye"
     monkeypatch.setitem(sys.modules, "hello", mod)
     apipkg.initpkg("hello", {})
     newmod = sys.modules["hello"]
-    assert newmod != mod
+    assert (PY2 and newmod != mod) or (PY3 and newmod is mod)
     assert newmod.__file__ == os.path.abspath(mod.__file__)
     assert newmod.__version__ == mod.__version__
     assert newmod.__loader__ == mod.__loader__
     assert newmod.__package__ == mod.__package__
     assert newmod.__doc__ == mod.__doc__
+    assert not hasattr(newmod, "goodbye")
 
 
 def test_initpkg_nodoc(monkeypatch):
@@ -312,7 +319,7 @@ def test_initpkg_overwrite_doc(monkeypatch):
     monkeypatch.setitem(sys.modules, "hello", hello)
     apipkg.initpkg("hello", {"__doc__": "sys:__doc__"})
     newhello = sys.modules["hello"]
-    assert newhello != hello
+    assert (PY2 and newhello != hello) or (PY3 and newhello is hello)
     assert newhello.__doc__ == sys.__doc__
 
 
@@ -324,7 +331,7 @@ def test_initpkg_not_transfers_not_existing_attrs(monkeypatch):
     monkeypatch.setitem(sys.modules, "hello", mod)
     apipkg.initpkg("hello", {})
     newmod = sys.modules["hello"]
-    assert newmod != mod
+    assert (PY2 and newmod != mod) or (PY3 and newmod is mod)
     assert newmod.__file__ == os.path.abspath(mod.__file__)
     assert not hasattr(newmod, "__path__")
     assert not hasattr(newmod, "__package__") or mod.__package__ is None
@@ -337,7 +344,7 @@ def test_initpkg_not_changing_jython_paths(monkeypatch):
     monkeypatch.setitem(sys.modules, "hello", mod)
     apipkg.initpkg("hello", {})
     newmod = sys.modules["hello"]
-    assert newmod != mod
+    assert (PY2 and newmod != mod) or (PY3 and newmod is mod)
     assert newmod.__file__.startswith("__pyclasspath__")
     unchanged, changed = newmod.__path__
     assert changed != "ichange"
@@ -563,6 +570,59 @@ def test_attribute_race(tmpdir, monkeypatch):
     assert attributerace.attr == 42
     for thread in threads:
         assert thread.attr == 42
+
+
+@pytest.mark.skipif("threading" not in sys.modules, reason="requires thread support")
+def test_import_race(tmpdir, monkeypatch):
+    pkgdir = tmpdir.mkdir("importrace")
+    pkgdir.join("__init__.py").write(
+        textwrap.dedent(
+            """
+        import time
+        time.sleep(0.1)
+        import apipkg
+        apipkg.initpkg(__name__, exportdefs={
+            'attr': '.submod:attr',
+            },
+        )
+    """
+        )
+    )
+    pkgdir.join("submod.py").write(
+        textwrap.dedent(
+            """
+        attr = 43
+    """
+        )
+    )
+    monkeypatch.syspath_prepend(tmpdir)
+
+    class TestThread(threading.Thread):
+        def __init__(self):
+            super(TestThread, self).__init__()
+            self.importrace = None
+
+        def run(self):
+            import importrace
+
+            self.importrace = importrace
+
+    threads = [TestThread() for _ in range(8)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    for thread in threads:
+        assert isinstance(thread.importrace, apipkg.ApiModule)
+        assert thread.importrace.attr == 43
+
+    import importrace
+
+    assert isinstance(importrace, apipkg.ApiModule)
+    assert importrace.attr == 43
+
+    for thread in threads:
+        assert thread.importrace is importrace
 
 
 def test_bpython_getattr_override(tmpdir, monkeypatch):
