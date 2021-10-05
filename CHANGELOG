@@ -1,3 +1,13 @@
+2.1.0
+----------------------------------------
+
+- fix race condition for import of modules using apipkg.initpkg in Python 3.3+
+  by updating existing modules in-place rather than replacing in sys.modules
+  with an apipkg.ApiModule instances. This race condition exists for
+  import statements (and __import__) in Python 3.3+ where sys.modules is
+  checked before obtaining an import lock, and for importlib.import_module
+  in Python 3.11+ for the same reason.
+
 2.0.1
 ----------------------------------------
 

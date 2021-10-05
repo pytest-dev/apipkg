@@ -20,6 +20,19 @@ else:
 from .version import version as __version__  # NOQA:F401
 
 
+_PY2 = sys.version_info[0] == 2
+_PRESERVED_MODULE_ATTRS = {
+    "__file__",
+    "__version__",
+    "__loader__",
+    "__path__",
+    "__package__",
+    "__doc__",
+    "__spec__",
+    "__dict__",
+}
+
+
 def _py_abspath(path):
     """
     special version of abspath
@@ -48,33 +61,85 @@ def distribution_version(name):
 def initpkg(pkgname, exportdefs, attr=None, eager=False):
     """ initialize given package from the export definitions. """
     attr = attr or {}
-    oldmod = sys.modules.get(pkgname)
-    d = {}
-    f = getattr(oldmod, "__file__", None)
-    if f:
-        f = _py_abspath(f)
-    d["__file__"] = f
-    if hasattr(oldmod, "__version__"):
-        d["__version__"] = oldmod.__version__
-    if hasattr(oldmod, "__loader__"):
-        d["__loader__"] = oldmod.__loader__
-    if hasattr(oldmod, "__path__"):
-        d["__path__"] = [_py_abspath(p) for p in oldmod.__path__]
-    if hasattr(oldmod, "__package__"):
-        d["__package__"] = oldmod.__package__
-    if "__doc__" not in exportdefs and getattr(oldmod, "__doc__", None):
-        d["__doc__"] = oldmod.__doc__
-    d["__spec__"] = getattr(oldmod, "__spec__", None)
-    d.update(attr)
-    if hasattr(oldmod, "__dict__"):
-        oldmod.__dict__.update(d)
-    mod = ApiModule(pkgname, exportdefs, implprefix=pkgname, attr=d)
-    sys.modules[pkgname] = mod
+    mod = sys.modules.get(pkgname)
+
+    if _PY2:
+        mod = _initpkg_py2(mod, pkgname, exportdefs, attr=attr)
+    else:
+        mod = _initpkg_py3(mod, pkgname, exportdefs, attr=attr)
+
     # eagerload in bypthon to avoid their monkeypatching breaking packages
     if "bpython" in sys.modules or eager:
         for module in list(sys.modules.values()):
             if isinstance(module, ApiModule):
                 module.__dict__
+
+    return mod
+
+
+def _initpkg_py2(mod, pkgname, exportdefs, attr=None):
+    """Python 2 helper for initpkg.
+
+    In Python 2 we can't update __class__ for an instance of types.Module, and
+    imports are protected by the global import lock anyway, so it is safe for a
+    module to replace itself during import.
+
+    """
+    d = {}
+    f = getattr(mod, "__file__", None)
+    if f:
+        f = _py_abspath(f)
+    d["__file__"] = f
+    if hasattr(mod, "__version__"):
+        d["__version__"] = mod.__version__
+    if hasattr(mod, "__loader__"):
+        d["__loader__"] = mod.__loader__
+    if hasattr(mod, "__path__"):
+        d["__path__"] = [_py_abspath(p) for p in mod.__path__]
+    if hasattr(mod, "__package__"):
+        d["__package__"] = mod.__package__
+    if "__doc__" not in exportdefs and getattr(mod, "__doc__", None):
+        d["__doc__"] = mod.__doc__
+    d["__spec__"] = getattr(mod, "__spec__", None)
+    d.update(attr)
+    if hasattr(mod, "__dict__"):
+        mod.__dict__.update(d)
+    mod = ApiModule(pkgname, exportdefs, implprefix=pkgname, attr=d)
+    sys.modules[pkgname] = mod
+    return mod
+
+
+def _initpkg_py3(mod, pkgname, exportdefs, attr=None):
+    """Python 3 helper for initpkg.
+
+    Python 3.3+ uses finer grained locking for imports, and checks sys.modules before
+    acquiring the lock to avoid the overhead of the fine-grained locking. This
+    introduces a race condition when a module is imported by multiple threads
+    concurrently - some threads will see the initial module and some the replacement
+    ApiModule. We avoid this by updating the existing module in-place.
+
+    """
+    if mod is None:
+        d = {"__file__": None, "__spec__": None}
+        d.update(attr)
+        mod = ApiModule(pkgname, exportdefs, implprefix=pkgname, attr=d)
+        sys.modules[pkgname] = mod
+    else:
+        f = getattr(mod, "__file__", None)
+        if f:
+            f = _py_abspath(f)
+        mod.__file__ = f
+        if hasattr(mod, "__path__"):
+            mod.__path__ = [_py_abspath(p) for p in mod.__path__]
+        if "__doc__" in exportdefs and hasattr(mod, "__doc__"):
+            del mod.__doc__
+        for name in dir(mod):
+            if name not in _PRESERVED_MODULE_ATTRS:
+                delattr(mod, name)
+
+        # Updating class of existing module as per importlib.util.LazyLoader
+        mod.__class__ = ApiModule
+        mod.__init__(pkgname, exportdefs, implprefix=pkgname, attr=attr)
     return mod
 
 
