@@ -742,7 +742,7 @@ def test_aliasmodule_pytest_autoreturn_none_for_hack(monkeypatch):
 
 
 def test_aliasmodule_unicode():
-    am = apipkg.AliasModule(u"mymod", "pprint")
+    am = apipkg.AliasModule("mymod", "pprint")
     assert am
 
 

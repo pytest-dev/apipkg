@@ -59,7 +59,7 @@ def distribution_version(name):
 
 
 def initpkg(pkgname, exportdefs, attr=None, eager=False):
-    """ initialize given package from the export definitions. """
+    """initialize given package from the export definitions."""
     attr = attr or {}
     mod = sys.modules.get(pkgname)
 
