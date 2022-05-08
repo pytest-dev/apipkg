@@ -2,20 +2,12 @@ import os.path
 import subprocess
 import sys
 import textwrap
+import threading
 import types
-
-try:
-    import threading
-except ImportError:
-    pass
 
 import pytest
 
 import apipkg
-
-
-PY2 = sys.version_info[0] == 2
-PY3 = sys.version_info[0] == 3
 
 
 #
@@ -262,10 +254,10 @@ def parsenamespace(spec):
             continue
         parts = [x.strip() for x in line.split()]
         if len(parts) != 2:
-            raise ValueError("Wrong format: {!r}".format(line))
+            raise ValueError(f"Wrong format: {line!r}")
         apiname, spec = parts
         if not spec.startswith("__"):
-            raise ValueError("{!r} does not start with __".format(spec))
+            raise ValueError(f"{spec!r} does not start with __")
         apinames = apiname.split(".")
         cur = ns
         for name in apinames[:-1]:
@@ -280,7 +272,7 @@ def test_initpkg_updates_sysmodules(monkeypatch):
     monkeypatch.setitem(sys.modules, "hello", mod)
     apipkg.initpkg("hello", {"x": "os.path:abspath"})
     newmod = sys.modules["hello"]
-    assert (PY2 and newmod != mod) or (PY3 and newmod is mod)
+    assert newmod is mod
     assert newmod.x == os.path.abspath
 
 
@@ -295,7 +287,7 @@ def test_initpkg_transfers_attrs(monkeypatch):
     monkeypatch.setitem(sys.modules, "hello", mod)
     apipkg.initpkg("hello", {})
     newmod = sys.modules["hello"]
-    assert (PY2 and newmod != mod) or (PY3 and newmod is mod)
+    assert newmod is mod
     assert newmod.__file__ == os.path.abspath(mod.__file__)
     assert newmod.__version__ == mod.__version__
     assert newmod.__loader__ == mod.__loader__
@@ -319,7 +311,7 @@ def test_initpkg_overwrite_doc(monkeypatch):
     monkeypatch.setitem(sys.modules, "hello", hello)
     apipkg.initpkg("hello", {"__doc__": "sys:__doc__"})
     newhello = sys.modules["hello"]
-    assert (PY2 and newhello != hello) or (PY3 and newhello is hello)
+    assert newhello is hello
     assert newhello.__doc__ == sys.__doc__
 
 
@@ -331,7 +323,7 @@ def test_initpkg_not_transfers_not_existing_attrs(monkeypatch):
     monkeypatch.setitem(sys.modules, "hello", mod)
     apipkg.initpkg("hello", {})
     newmod = sys.modules["hello"]
-    assert (PY2 and newmod != mod) or (PY3 and newmod is mod)
+    assert newmod is mod
     assert newmod.__file__ == os.path.abspath(mod.__file__)
     assert not hasattr(newmod, "__path__")
     assert not hasattr(newmod, "__package__") or mod.__package__ is None
@@ -344,7 +336,7 @@ def test_initpkg_not_changing_jython_paths(monkeypatch):
     monkeypatch.setitem(sys.modules, "hello", mod)
     apipkg.initpkg("hello", {})
     newmod = sys.modules["hello"]
-    assert (PY2 and newmod != mod) or (PY3 and newmod is mod)
+    assert newmod is mod
     assert newmod.__file__.startswith("__pyclasspath__")
     unchanged, changed = newmod.__path__
     assert changed != "ichange"
@@ -501,7 +493,7 @@ def test_onfirstaccess_race(tmpdir, monkeypatch):
 
     class TestThread(threading.Thread):
         def __init__(self, event_start):
-            super(TestThread, self).__init__()
+            super().__init__()
             self.event_start = event_start
             self.lenl = None
 
@@ -552,7 +544,7 @@ def test_attribute_race(tmpdir, monkeypatch):
 
     class TestThread(threading.Thread):
         def __init__(self, event_start):
-            super(TestThread, self).__init__()
+            super().__init__()
             self.event_start = event_start
             self.attr = None
 
@@ -599,7 +591,7 @@ def test_import_race(tmpdir, monkeypatch):
 
     class TestThread(threading.Thread):
         def __init__(self):
-            super(TestThread, self).__init__()
+            super().__init__()
             self.importrace = None
 
         def run(self):
@@ -742,7 +734,7 @@ def test_aliasmodule_pytest_autoreturn_none_for_hack(monkeypatch):
 
 
 def test_aliasmodule_unicode():
-    am = apipkg.AliasModule(u"mymod", "pprint")
+    am = apipkg.AliasModule("mymod", "pprint")
     assert am
 
 
