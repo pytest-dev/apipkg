@@ -155,7 +155,7 @@ class ApiModule(ModuleType):
                 setattr(self, name, val)
         for name, importspec in importspec.items():
             if isinstance(importspec, dict):
-                subname = "{}.{}".format(self.__name__, name)
+                subname = f"{self.__name__}.{name}"
                 apimod = ApiModule(subname, importspec, implprefix)
                 sys.modules[subname] = apimod
                 setattr(self, name, apimod)
@@ -167,7 +167,7 @@ class ApiModule(ModuleType):
                     modpath = implprefix + modpath
 
                 if not attrname:
-                    subname = "{}.{}".format(self.__name__, name)
+                    subname = f"{self.__name__}.{name}"
                     apimod = AliasModule(subname, modpath)
                     sys.modules[subname] = apimod
                     if "." not in name:
@@ -183,7 +183,7 @@ class ApiModule(ModuleType):
             repr_list.append("from " + repr(self.__file__))
         if repr_list:
             return "<ApiModule {!r} {}>".format(self.__name__, " ".join(repr_list))
-        return "<ApiModule {!r}>".format(self.__name__)
+        return f"<ApiModule {self.__name__!r}>"
 
     @_synchronized
     def __makeattr(self, name, isgetattr=False):
@@ -210,7 +210,7 @@ class ApiModule(ModuleType):
             # * Only call __getattribute__ if there is a possibility something has set
             #   the attribute we're looking for since __getattr__ was called
             if threading is not None and isgetattr:
-                return super(ApiModule, self).__getattribute__(name)
+                return super().__getattribute__(name)
             raise AttributeError(name)
         else:
             result = importobj(modpath, attrname)
@@ -252,7 +252,7 @@ def AliasModule(modname, modpath, attrname=None):
         return mod[0]
 
     x = modpath + ("." + attrname if attrname else "")
-    repr_result = "<AliasModule {!r} for {!r}>".format(modname, x)
+    repr_result = f"<AliasModule {modname!r} for {x!r}>"
 
     class AliasModule(ModuleType):
         def __repr__(self):

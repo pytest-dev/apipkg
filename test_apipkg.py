@@ -254,10 +254,10 @@ def parsenamespace(spec):
             continue
         parts = [x.strip() for x in line.split()]
         if len(parts) != 2:
-            raise ValueError("Wrong format: {!r}".format(line))
+            raise ValueError(f"Wrong format: {line!r}")
         apiname, spec = parts
         if not spec.startswith("__"):
-            raise ValueError("{!r} does not start with __".format(spec))
+            raise ValueError(f"{spec!r} does not start with __")
         apinames = apiname.split(".")
         cur = ns
         for name in apinames[:-1]:
@@ -493,7 +493,7 @@ def test_onfirstaccess_race(tmpdir, monkeypatch):
 
     class TestThread(threading.Thread):
         def __init__(self, event_start):
-            super(TestThread, self).__init__()
+            super().__init__()
             self.event_start = event_start
             self.lenl = None
 
@@ -544,7 +544,7 @@ def test_attribute_race(tmpdir, monkeypatch):
 
     class TestThread(threading.Thread):
         def __init__(self, event_start):
-            super(TestThread, self).__init__()
+            super().__init__()
             self.event_start = event_start
             self.attr = None
 
@@ -591,7 +591,7 @@ def test_import_race(tmpdir, monkeypatch):
 
     class TestThread(threading.Thread):
         def __init__(self):
-            super(TestThread, self).__init__()
+            super().__init__()
             self.importrace = None
 
         def run(self):
