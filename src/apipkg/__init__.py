@@ -5,22 +5,15 @@ see https://pypi.python.org/pypi/apipkg
 
 (c) holger krekel, 2009 - MIT license
 """
+import functools
 import os
 import sys
+import threading
 from types import ModuleType
-
-# Prior to Python 3.7 threading support was optional
-try:
-    import threading
-except ImportError:
-    threading = None
-else:
-    import functools
 
 from .version import version as __version__  # NOQA:F401
 
 
-_PY2 = sys.version_info[0] == 2
 _PRESERVED_MODULE_ATTRS = {
     "__file__",
     "__version__",
@@ -63,10 +56,7 @@ def initpkg(pkgname, exportdefs, attr=None, eager=False):
     attr = attr or {}
     mod = sys.modules.get(pkgname)
 
-    if _PY2:
-        mod = _initpkg_py2(mod, pkgname, exportdefs, attr=attr)
-    else:
-        mod = _initpkg_py3(mod, pkgname, exportdefs, attr=attr)
+    mod = _initpkg(mod, pkgname, exportdefs, attr=attr)
 
     # eagerload in bypthon to avoid their monkeypatching breaking packages
     if "bpython" in sys.modules or eager:
@@ -77,40 +67,8 @@ def initpkg(pkgname, exportdefs, attr=None, eager=False):
     return mod
 
 
-def _initpkg_py2(mod, pkgname, exportdefs, attr=None):
-    """Python 2 helper for initpkg.
-
-    In Python 2 we can't update __class__ for an instance of types.Module, and
-    imports are protected by the global import lock anyway, so it is safe for a
-    module to replace itself during import.
-
-    """
-    d = {}
-    f = getattr(mod, "__file__", None)
-    if f:
-        f = _py_abspath(f)
-    d["__file__"] = f
-    if hasattr(mod, "__version__"):
-        d["__version__"] = mod.__version__
-    if hasattr(mod, "__loader__"):
-        d["__loader__"] = mod.__loader__
-    if hasattr(mod, "__path__"):
-        d["__path__"] = [_py_abspath(p) for p in mod.__path__]
-    if hasattr(mod, "__package__"):
-        d["__package__"] = mod.__package__
-    if "__doc__" not in exportdefs and getattr(mod, "__doc__", None):
-        d["__doc__"] = mod.__doc__
-    d["__spec__"] = getattr(mod, "__spec__", None)
-    d.update(attr)
-    if hasattr(mod, "__dict__"):
-        mod.__dict__.update(d)
-    mod = ApiModule(pkgname, exportdefs, implprefix=pkgname, attr=d)
-    sys.modules[pkgname] = mod
-    return mod
-
-
-def _initpkg_py3(mod, pkgname, exportdefs, attr=None):
-    """Python 3 helper for initpkg.
+def _initpkg(mod, pkgname, exportdefs, attr=None):
+    """Helper for initpkg.
 
     Python 3.3+ uses finer grained locking for imports, and checks sys.modules before
     acquiring the lock to avoid the overhead of the fine-grained locking. This

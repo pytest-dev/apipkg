@@ -3,7 +3,7 @@ Welcome to apipkg !
 
 With apipkg you can control the exported namespace of a Python package and
 greatly reduce the number of imports for your users.
-It is a `small pure Python module`_ that works on CPython 2.7 and 3.4+,
+It is a `small pure Python module`_ that works on CPython 3.7+,
 Jython and PyPy. It cooperates well with Python's ``help()`` system,
 custom importers (PEP302) and common command-line completion tools.
 
