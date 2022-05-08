@@ -15,8 +15,9 @@ Tutorial example
 -------------------
 
 Here is a simple ``mypkg`` package that specifies one namespace
-and exports two objects imported from different modules::
+and exports two objects imported from different modules:
 
+.. code-block:: python
 
     # mypkg/__init__.py
     import apipkg
@@ -37,7 +38,9 @@ regular Python package.
 Namespace dictionaries contain ``name: value`` mappings
 where the value may be another namespace dictionary or
 a string specifying an import location.  On accessing
-an namespace attribute an import will be performed::
+an namespace attribute an import will be performed:
+
+.. code-block:: pycon
 
     >>> import mypkg
     >>> mypkg.path
@@ -55,7 +58,9 @@ loaded when they are accessed.   This means:
 * only the root "mypkg" ever needs to be imported to get
   access to the complete functionality
 
-* the underlying modules are also accessible, for example::
+* the underlying modules are also accessible, for example:
+
+.. code-block:: python
 
     from mypkg.sub import Class1
 
