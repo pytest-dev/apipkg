@@ -19,7 +19,7 @@ jobs:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v3
       with:
-        python-version: "3.9"
+        python-version: "3.10"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -38,14 +38,14 @@ jobs:
     strategy:
       matrix:
         # todo: extract from source
-        python-version: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9, "3.10-dev"]
+        python-version: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9, "3.10"]
         install-from: ["dist/*.whl"]
         include:
-        - python-version: 3.9
+        - python-version: "3.10"
           install-from: "-e ."
-        - python-version: 3.9
+        - python-version: "3.10"
           install-from: "."
-        - python-version: 3.9
+        - python-version: "3.10"
           install-from: "dist/*.tar.gz"
     steps:
     - uses: actions/checkout@v3
@@ -74,7 +74,7 @@ jobs:
     steps:
     - uses: actions/setup-python@v3
       with:
-        python-version: "3.9"
+        python-version: "3.10"
     - uses: actions/download-artifact@v3
       with:
         name: dist
