@@ -34,4 +34,3 @@ repos:
     rev: v1.20.1
     hooks:
     -   id: setup-cfg-fmt
-        args: [--min-py3-version=3.4]

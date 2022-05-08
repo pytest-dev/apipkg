@@ -5,22 +5,15 @@ see https://pypi.python.org/pypi/apipkg
 
 (c) holger krekel, 2009 - MIT license
 """
+import functools
 import os
 import sys
+import threading
 from types import ModuleType
-
-# Prior to Python 3.7 threading support was optional
-try:
-    import threading
-except ImportError:
-    threading = None
-else:
-    import functools
 
 from .version import version as __version__  # NOQA:F401
 
 
-_PY2 = sys.version_info[0] == 2
 _PRESERVED_MODULE_ATTRS = {
     "__file__",
     "__version__",
@@ -63,10 +56,7 @@ def initpkg(pkgname, exportdefs, attr=None, eager=False):
     attr = attr or {}
     mod = sys.modules.get(pkgname)
 
-    if _PY2:
-        mod = _initpkg_py2(mod, pkgname, exportdefs, attr=attr)
-    else:
-        mod = _initpkg_py3(mod, pkgname, exportdefs, attr=attr)
+    mod = _initpkg(mod, pkgname, exportdefs, attr=attr)
 
     # eagerload in bypthon to avoid their monkeypatching breaking packages
     if "bpython" in sys.modules or eager:
@@ -77,40 +67,8 @@ def initpkg(pkgname, exportdefs, attr=None, eager=False):
     return mod
 
 
-def _initpkg_py2(mod, pkgname, exportdefs, attr=None):
-    """Python 2 helper for initpkg.
-
-    In Python 2 we can't update __class__ for an instance of types.Module, and
-    imports are protected by the global import lock anyway, so it is safe for a
-    module to replace itself during import.
-
-    """
-    d = {}
-    f = getattr(mod, "__file__", None)
-    if f:
-        f = _py_abspath(f)
-    d["__file__"] = f
-    if hasattr(mod, "__version__"):
-        d["__version__"] = mod.__version__
-    if hasattr(mod, "__loader__"):
-        d["__loader__"] = mod.__loader__
-    if hasattr(mod, "__path__"):
-        d["__path__"] = [_py_abspath(p) for p in mod.__path__]
-    if hasattr(mod, "__package__"):
-        d["__package__"] = mod.__package__
-    if "__doc__" not in exportdefs and getattr(mod, "__doc__", None):
-        d["__doc__"] = mod.__doc__
-    d["__spec__"] = getattr(mod, "__spec__", None)
-    d.update(attr)
-    if hasattr(mod, "__dict__"):
-        mod.__dict__.update(d)
-    mod = ApiModule(pkgname, exportdefs, implprefix=pkgname, attr=d)
-    sys.modules[pkgname] = mod
-    return mod
-
-
-def _initpkg_py3(mod, pkgname, exportdefs, attr=None):
-    """Python 3 helper for initpkg.
+def _initpkg(mod, pkgname, exportdefs, attr=None):
+    """Helper for initpkg.
 
     Python 3.3+ uses finer grained locking for imports, and checks sys.modules before
     acquiring the lock to avoid the overhead of the fine-grained locking. This
@@ -197,7 +155,7 @@ class ApiModule(ModuleType):
                 setattr(self, name, val)
         for name, importspec in importspec.items():
             if isinstance(importspec, dict):
-                subname = "{}.{}".format(self.__name__, name)
+                subname = f"{self.__name__}.{name}"
                 apimod = ApiModule(subname, importspec, implprefix)
                 sys.modules[subname] = apimod
                 setattr(self, name, apimod)
@@ -209,7 +167,7 @@ class ApiModule(ModuleType):
                     modpath = implprefix + modpath
 
                 if not attrname:
-                    subname = "{}.{}".format(self.__name__, name)
+                    subname = f"{self.__name__}.{name}"
                     apimod = AliasModule(subname, modpath)
                     sys.modules[subname] = apimod
                     if "." not in name:
@@ -225,7 +183,7 @@ class ApiModule(ModuleType):
             repr_list.append("from " + repr(self.__file__))
         if repr_list:
             return "<ApiModule {!r} {}>".format(self.__name__, " ".join(repr_list))
-        return "<ApiModule {!r}>".format(self.__name__)
+        return f"<ApiModule {self.__name__!r}>"
 
     @_synchronized
     def __makeattr(self, name, isgetattr=False):
@@ -252,7 +210,7 @@ class ApiModule(ModuleType):
             # * Only call __getattribute__ if there is a possibility something has set
             #   the attribute we're looking for since __getattr__ was called
             if threading is not None and isgetattr:
-                return super(ApiModule, self).__getattribute__(name)
+                return super().__getattribute__(name)
             raise AttributeError(name)
         else:
             result = importobj(modpath, attrname)
@@ -294,7 +252,7 @@ def AliasModule(modname, modpath, attrname=None):
         return mod[0]
 
     x = modpath + ("." + attrname if attrname else "")
-    repr_result = "<AliasModule {!r} for {!r}>".format(modname, x)
+    repr_result = f"<AliasModule {modname!r} for {x!r}>"
 
     class AliasModule(ModuleType):
         def __repr__(self):
