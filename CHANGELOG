@@ -1,3 +1,10 @@
+2.1.1
+-----
+
+* drop the python 3.4 support marker, 2.1.0 broke it
+  2.1.0 will be yanked after release
+
+
 2.1.0
 ----------------------------------------
 
