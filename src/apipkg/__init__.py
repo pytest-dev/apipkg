@@ -5,14 +5,16 @@ see https://pypi.python.org/pypi/apipkg
 
 (c) holger krekel, 2009 - MIT license
 """
+from __future__ import annotations
+
 import functools
-import os
 import sys
 import threading
 from types import ModuleType
 
-from .version import version as __version__  # NOQA:F401
-
+from ._importing import _py_abspath
+from ._importing import distribution_version as distribution_version
+from ._version import version as __version__  # NOQA:F401
 
 _PRESERVED_MODULE_ATTRS = {
     "__file__",
@@ -24,31 +26,6 @@ _PRESERVED_MODULE_ATTRS = {
     "__spec__",
     "__dict__",
 }
-
-
-def _py_abspath(path):
-    """
-    special version of abspath
-    that will leave paths from jython jars alone
-    """
-    if path.startswith("__pyclasspath__"):
-
-        return path
-    else:
-        return os.path.abspath(path)
-
-
-def distribution_version(name):
-    """try to get the version of the named distribution,
-    returs None on failure"""
-    from pkg_resources import get_distribution, DistributionNotFound
-
-    try:
-        dist = get_distribution(name)
-    except DistributionNotFound:
-        pass
-    else:
-        return dist.version
 
 
 def initpkg(pkgname, exportdefs, attr=None, eager=False):
@@ -101,7 +78,7 @@ def _initpkg(mod, pkgname, exportdefs, attr=None):
     return mod
 
 
-def importobj(modpath, attrname):
+def importobj(modpath: str, attrname: str) -> object:
     """imports a module, then resolves the attrname on it"""
     module = __import__(modpath, None, None, ["__doc__"])
     if not attrname:
@@ -116,8 +93,6 @@ def importobj(modpath, attrname):
 
 def _synchronized(wrapped_function):
     """Decorator to synchronise __getattr__ calls."""
-    if threading is None:
-        return wrapped_function
 
     # Lock shared between all instances of ApiModule to avoid possible deadlocks
     lock = threading.RLock()
@@ -133,17 +108,19 @@ def _synchronized(wrapped_function):
 class ApiModule(ModuleType):
     """the magical lazy-loading module standing"""
 
-    def __docget(self):
+    def __docget(self) -> str | None:
         try:
             return self.__doc
         except AttributeError:
             if "__doc__" in self.__map__:
                 return self.__makeattr("__doc__")
+            else:
+                return None
 
-    def __docset(self, value):
+    def __docset(self, value: str) -> None:
         self.__doc = value
 
-    __doc__ = property(__docget, __docset)
+    __doc__ = property(__docget, __docset)  # type: ignore
 
     def __init__(self, name, importspec, implprefix=None, attr=None):
         self.__name__ = name
@@ -240,16 +217,19 @@ class ApiModule(ModuleType):
         return dict
 
 
-def AliasModule(modname, modpath, attrname=None):
-    mod = []
+def AliasModule(modname: str, modpath: str, attrname: str | None=None):
+    mod: object | None = None
 
-    def getmod():
-        if not mod:
-            x = importobj(modpath, None)
+    def getmod() -> object:
+        nonlocal mod
+        if mod is None:
+            imported = importobj(modpath, None)
             if attrname is not None:
-                x = getattr(x, attrname)
-            mod.append(x)
-        return mod[0]
+                mod = getattr(imported, attrname)
+            else:
+                mod = imported
+
+        return mod
 
     x = modpath + ("." + attrname if attrname else "")
     repr_result = f"<AliasModule {modname!r} for {x!r}>"

@@ -1,7 +1,48 @@
 [build-system]
-requires = ["setuptools>=41.2.0", "wheel", "setuptools_scm>3"]
+requires = [
+    "hatchling>=0.24.0", "hatch-vcs"
+]
+build-backend = "hatchling.build"
 
+[project]
+name = "apipkg"
+description = "apipkg: namespace control and lazy-import mechanism"
+readme = "README.rst"
+license = "MIT"
+requires-python = ">=3.7"
+authors = [
+    { name = "holger krekel" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Software Development :: Libraries",
+]
+dynamic = [
+    "version",
+]
 
+[project.urls]
+Homepage = "https://github.com/pytest-dev/apipkg"
 
-[tool.setuptools_scm]
-write_to = "src/apipkg/version.py"
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+]
+[tool.hatch.build.hooks.vcs]
+version-file = "src/apipkg/_version.py"
