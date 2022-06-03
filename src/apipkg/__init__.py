@@ -11,9 +11,14 @@ import functools
 import sys
 import threading
 from types import ModuleType
+from typing import Any
+from typing import Callable
+from typing import cast
+from typing import Iterable
 
 from ._importing import _py_abspath
-from ._importing import distribution_version as distribution_version
+from ._importing import distribution_version as distribution_version  # NOQA:F401
+from ._importing import importobj
 from ._version import version as __version__  # NOQA:F401
 
 _PRESERVED_MODULE_ATTRS = {
@@ -28,7 +33,12 @@ _PRESERVED_MODULE_ATTRS = {
 }
 
 
-def initpkg(pkgname, exportdefs, attr=None, eager=False):
+def initpkg(
+    pkgname: str,
+    exportdefs: dict[str, Any],
+    attr: dict[str, Any] | None = None,
+    eager: bool = False,
+) -> ApiModule:
     """initialize given package from the export definitions."""
     attr = attr or {}
     mod = sys.modules.get(pkgname)
@@ -39,12 +49,12 @@ def initpkg(pkgname, exportdefs, attr=None, eager=False):
     if "bpython" in sys.modules or eager:
         for module in list(sys.modules.values()):
             if isinstance(module, ApiModule):
-                module.__dict__
+                getattr(module, "__dict__")
 
     return mod
 
 
-def _initpkg(mod, pkgname, exportdefs, attr=None):
+def _initpkg(mod: ModuleType | None, pkgname, exportdefs, attr=None) -> ApiModule:
     """Helper for initpkg.
 
     Python 3.3+ uses finer grained locking for imports, and checks sys.modules before
@@ -59,6 +69,7 @@ def _initpkg(mod, pkgname, exportdefs, attr=None):
         d.update(attr)
         mod = ApiModule(pkgname, exportdefs, implprefix=pkgname, attr=d)
         sys.modules[pkgname] = mod
+        return mod
     else:
         f = getattr(mod, "__file__", None)
         if f:
@@ -74,21 +85,9 @@ def _initpkg(mod, pkgname, exportdefs, attr=None):
 
         # Updating class of existing module as per importlib.util.LazyLoader
         mod.__class__ = ApiModule
-        mod.__init__(pkgname, exportdefs, implprefix=pkgname, attr=attr)
-    return mod
-
-
-def importobj(modpath: str, attrname: str) -> object:
-    """imports a module, then resolves the attrname on it"""
-    module = __import__(modpath, None, None, ["__doc__"])
-    if not attrname:
-        return module
-
-    retval = module
-    names = attrname.split(".")
-    for x in names:
-        retval = getattr(retval, x)
-    return retval
+        apimod = cast(ApiModule, mod)
+        ApiModule.__init__(apimod, pkgname, exportdefs, implprefix=pkgname, attr=attr)
+        return apimod
 
 
 def _synchronized(wrapped_function):
@@ -113,7 +112,7 @@ class ApiModule(ModuleType):
             return self.__doc
         except AttributeError:
             if "__doc__" in self.__map__:
-                return self.__makeattr("__doc__")
+                return cast(str, self.__makeattr("__doc__"))
             else:
                 return None
 
@@ -121,8 +120,16 @@ class ApiModule(ModuleType):
         self.__doc = value
 
     __doc__ = property(__docget, __docset)  # type: ignore
+    __map__: dict[str, tuple[str, str]]
 
-    def __init__(self, name, importspec, implprefix=None, attr=None):
+    def __init__(
+        self,
+        name: str,
+        importspec: dict[str, Any],
+        implprefix: str | None = None,
+        attr: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(name)
         self.__name__ = name
         self.__all__ = [x for x in importspec if x != "__onfirstaccess__"]
         self.__map__ = {}
@@ -168,7 +175,8 @@ class ApiModule(ModuleType):
         target = None
         if "__onfirstaccess__" in self.__map__:
             target = self.__map__.pop("__onfirstaccess__")
-            importobj(*target)()
+            fn = cast(Callable[[], None], importobj(*target))
+            fn()
         try:
             modpath, attrname = self.__map__[name]
         except KeyError:
@@ -192,53 +200,50 @@ class ApiModule(ModuleType):
         else:
             result = importobj(modpath, attrname)
             setattr(self, name, result)
-            try:
-                del self.__map__[name]
-            except KeyError:
-                pass  # in a recursive-import situation a double-del can happen
+            # in a recursive-import situation a double-del can happen
+            self.__map__.pop(name, None)
             return result
 
     def __getattr__(self, name):
         return self.__makeattr(name, isgetattr=True)
 
+    def __dir__(self) -> Iterable[str]:
+        yield from super().__dir__()
+        yield from self.__map__
+
     @property
-    def __dict__(self):
+    def __dict__(self) -> dict[str, Any]:  # type: ignore
         # force all the content of the module
         # to be loaded when __dict__ is read
-        dictdescr = ModuleType.__dict__["__dict__"]
-        dict = dictdescr.__get__(self)
-        if dict is not None:
+        dictdescr = ModuleType.__dict__["__dict__"]  # type: ignore
+        ns: dict[str, Any] = dictdescr.__get__(self)
+        if ns is not None:
             hasattr(self, "some")
             for name in self.__all__:
                 try:
                     self.__makeattr(name)
                 except AttributeError:
                     pass
-        return dict
+        return ns
 
 
-def AliasModule(modname: str, modpath: str, attrname: str | None=None):
-    mod: object | None = None
+def AliasModule(modname: str, modpath: str, attrname: str | None = None) -> ModuleType:
+    cached_obj: object | None = None
 
     def getmod() -> object:
-        nonlocal mod
-        if mod is None:
-            imported = importobj(modpath, None)
-            if attrname is not None:
-                mod = getattr(imported, attrname)
-            else:
-                mod = imported
-
-        return mod
+        nonlocal cached_obj
+        if cached_obj is None:
+            cached_obj = importobj(modpath, attrname)
+        return cached_obj
 
     x = modpath + ("." + attrname if attrname else "")
     repr_result = f"<AliasModule {modname!r} for {x!r}>"
 
     class AliasModule(ModuleType):
-        def __repr__(self):
+        def __repr__(self) -> str:
             return repr_result
 
-        def __getattribute__(self, name):
+        def __getattribute__(self, name: str) -> object:
             try:
                 return getattr(getmod(), name)
             except ImportError:
@@ -248,10 +253,10 @@ def AliasModule(modname: str, modpath: str, attrname: str | None=None):
                 else:
                     raise
 
-        def __setattr__(self, name, value):
+        def __setattr__(self, name: str, value: object) -> None:
             setattr(getmod(), name, value)
 
-        def __delattr__(self, name):
+        def __delattr__(self, name: str) -> None:
             delattr(getmod(), name)
 
     return AliasModule(str(modname))

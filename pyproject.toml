@@ -13,6 +13,9 @@ requires-python = ">=3.7"
 authors = [
     { name = "holger krekel" },
 ]
+maintainers = [
+    { name = "Ronny Pfannschmidt" , email = "opensource+apipkg@ronnypfannschmidt.de"}
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -46,3 +49,18 @@ include = [
 ]
 [tool.hatch.build.hooks.vcs]
 version-file = "src/apipkg/_version.py"
+
+[tool.hatch.envs.test]
+dependencies = [
+  "coverage[toml]",
+  "pytest",
+  "pytest-cov",
+]
+[[tool.hatch.envs.test.matrix]]
+python = ["3.7", "3.8", "3.9", "3.10", "3.11"]
+
+[tool.hatch.envs.test.scripts]
+run-coverage = "pytest --cov-config=pyproject.toml --cov=pkg --cov=tests {args}"
+run = "run-coverage --no-cov {args}"
+[mypy]
+python_version = "3.7"
