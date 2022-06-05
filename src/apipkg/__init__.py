@@ -161,14 +161,13 @@ class ApiModule(ModuleType):
                     self.__map__[name] = (modpath, attrname)
 
     def __repr__(self):
-        repr_list = []
+        repr_list = [f"<ApiModule {self.__name__!r}"]
         if hasattr(self, "__version__"):
-            repr_list.append("version=" + repr(self.__version__))
+            repr_list.append(f" version={self.__version__!r}")
         if hasattr(self, "__file__"):
-            repr_list.append("from " + repr(self.__file__))
-        if repr_list:
-            return "<ApiModule {!r} {}>".format(self.__name__, " ".join(repr_list))
-        return f"<ApiModule {self.__name__!r}>"
+            repr_list.append(f" from {self.__file__!r}")
+        repr_list.append(">")
+        return "".join(repr_list)
 
     @_synchronized
     def __makeattr(self, name, isgetattr=False):
