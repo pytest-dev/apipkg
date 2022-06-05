@@ -3,6 +3,8 @@
 -----
 * add support for python 3.11 and drop dead pythons (thanks hukgo)
 * migrate to hatch
+* split up __init__.py
+* add some type annotations
 
 2.1.1
 -----
