@@ -7,12 +7,12 @@ import types
 
 import pytest
 
-import apipkg
-
+import apipkg._alias_module
 
 #
 # test support for importing modules
 #
+
 ModuleType = types.ModuleType
 
 
@@ -70,23 +70,23 @@ class TestRealModule:
             sys.modules.pop(modname, None)
 
     def test_realmodule(self):
-        import realtest.x
+        import realtest.x  # type: ignore
 
         assert "realtest.x.module" in sys.modules
         assert getattr(realtest.x.module, "mytest0")
 
     def test_realmodule_repr(self):
-        import realtest.x
+        import realtest.x  # type: ignore
 
         assert "<ApiModule 'realtest.x'>" == repr(realtest.x)
 
     def test_realmodule_from(self):
-        from realtest.x import module
+        from realtest.x import module  # type: ignore
 
         assert getattr(module, "mytest1")
 
     def test_realmodule__all__(self):
-        import realtest.x.module
+        import realtest.x.module  # type: ignore
 
         assert realtest.x.__all__ == ["module"]
         assert len(realtest.x.module.__all__) == 4
@@ -705,7 +705,7 @@ def test_extra_attributes(tmpdir, monkeypatch):
 
 
 def test_aliasmodule_aliases_an_attribute():
-    am = apipkg.AliasModule("mymod", "pprint", "PrettyPrinter")
+    am = apipkg._alias_module.AliasModule("mymod", "pprint", "PrettyPrinter")
     r = repr(am)
     assert "<AliasModule 'mymod' for 'pprint.PrettyPrinter'>" == r
     assert am.format
@@ -713,7 +713,7 @@ def test_aliasmodule_aliases_an_attribute():
 
 
 def test_aliasmodule_aliases_unimportable_fails():
-    am = apipkg.AliasModule("mymod", "qlwkejqlwe", "main")
+    am = apipkg._alias_module.AliasModule("mymod", "qlwkejqlwe", "main")
     r = repr(am)
     assert "<AliasModule 'mymod' for 'qlwkejqlwe.main'>" == r
     # this would pass starting with apipkg 1.3 to work around a pytest bug
@@ -725,21 +725,21 @@ def test_aliasmodule_pytest_autoreturn_none_for_hack(monkeypatch):
     def error(*k):
         raise ImportError(k)
 
-    monkeypatch.setattr(apipkg, "importobj", error)
+    monkeypatch.setattr(apipkg._alias_module, "importobj", error)
     # apipkg 1.3 added this hack
-    am = apipkg.AliasModule("mymod", "pytest")
+    am = apipkg._alias_module.AliasModule("mymod", "pytest")
     r = repr(am)
     assert "<AliasModule 'mymod' for 'pytest'>" == r
     assert am.test is None
 
 
 def test_aliasmodule_unicode():
-    am = apipkg.AliasModule("mymod", "pprint")
+    am = apipkg._alias_module.AliasModule("mymod", "pprint")
     assert am
 
 
 def test_aliasmodule_repr():
-    am = apipkg.AliasModule("mymod", "sys")
+    am = apipkg._alias_module.AliasModule("mymod", "sys")
     r = repr(am)
     assert "<AliasModule 'mymod' for 'sys'>" == r
     am.version
@@ -770,8 +770,8 @@ def test_aliasmodule_proxy_methods(tmpdir, monkeypatch):
     )
 
     monkeypatch.syspath_prepend(tmpdir)
-    import aliasmodule_proxy as orig
-    from my_aliasmodule_proxy import proxy
+    import aliasmodule_proxy as orig  # type: ignore
+    from my_aliasmodule_proxy import proxy  # type: ignore
 
     doit = proxy.doit
     assert doit is orig.doit
@@ -811,20 +811,20 @@ def test_aliasmodule_nested_import_with_from(tmpdir, monkeypatch):
         )
     )
     monkeypatch.syspath_prepend(tmpdir)
-    from api1 import os2
-    from api1.os2.path import abspath
+    from api1 import os2  # type: ignore
+    from api1.os2.path import abspath  # type: ignore
 
     assert abspath == os.path.abspath
     # check that api1.os2 mirrors os.*
     assert os2.x == 3
-    import api1
+    import api1  # type: ignore
 
     assert "os2.path" not in api1.__dict__
 
 
 def test_initpkg_without_old_module():
     apipkg.initpkg("initpkg_without_old_module", dict(modules="sys:modules"))
-    from initpkg_without_old_module import modules
+    from initpkg_without_old_module import modules  # type: ignore
 
     assert modules is sys.modules
 
@@ -861,7 +861,9 @@ def test_importlib_find_spec_fake_module(find_spec):
 
 
 def test_importlib_find_spec_aliasmodule(find_spec):
-    am = apipkg.AliasModule("apipkg.testmodule.example.email_spec", "email")
+    am = apipkg._alias_module.AliasModule(
+        "apipkg.testmodule.example.email_spec", "email"
+    )
     spec = find_spec(am.__name__)
     assert spec is am.__spec__
 

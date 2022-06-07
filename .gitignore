@@ -1,6 +1,7 @@
-src/apipkg/version.py
+src/apipkg/_version.py
 __pycache__
 *.egg-info
 .pytest_cache/
 .eggs/
 .tox/
+dist/

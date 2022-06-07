@@ -1,8 +1,8 @@
-import py
+import pathlib
 
 import apipkg
 
-LOCAL_APIPKG = py.path.local(__file__).dirpath().join("src/apipkg/__init__.py")
+LOCAL_APIPKG = pathlib.Path(__file__).parent.joinpath("src/apipkg/__init__.py")
 INSTALL_TYPE = "editable" if apipkg.__file__ == LOCAL_APIPKG else "full"
 
 

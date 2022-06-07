@@ -1,7 +1,67 @@
 [build-system]
-requires = ["setuptools>=41.2.0", "wheel", "setuptools_scm>3"]
+build-backend = "hatchling.build"
+requires = [
+  "hatch-vcs",
+  "hatchling>=0.24",
+]
+
+[project]
+name = "apipkg"
+description = "apipkg: namespace control and lazy-import mechanism"
+readme = "README.rst"
+license = "MIT"
+maintainers = [
+    { name = "Ronny Pfannschmidt",  email = "opensource+apipkg@ronnypfannschmidt.de"}
+]
+authors = [
+    { name = "holger krekel" },
+]
+requires-python = ">=3.7"
+dynamic = [
+  "version",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Software Development :: Libraries",
+]
+[project.urls]
+Homepage = "https://github.com/pytest-dev/apipkg"
 
 
+[tool.hatch.version]
+source = "vcs"
 
-[tool.setuptools_scm]
-write_to = "src/apipkg/version.py"
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+]
+[tool.hatch.build.hooks.vcs]
+version-file = "src/apipkg/_version.py"
+
+[tool.hatch.envs.test]
+dependencies = [
+  "coverage[toml]",
+  "pytest",
+  "pytest-cov",
+]
+[[tool.hatch.envs.test.matrix]]
+python = ["3.7", "3.8", "3.9", "3.10", "3.11"]
+
+[tool.hatch.envs.test.scripts]
+run-coverage = "pytest --cov-config=pyproject.toml --cov=pkg --cov=tests {args}"
+run = "run-coverage --no-cov {args}"
+[mypy]
+python_version = "3.7"
