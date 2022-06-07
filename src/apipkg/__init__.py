@@ -7,15 +7,15 @@ see https://pypi.python.org/pypi/apipkg
 """
 from __future__ import annotations
 
-__all__ = ["initpkg", "ApiModule", "AliasModule"]
+__all__ = ["initpkg", "ApiModule", "AliasModule", "__version__", "distribution_version"]
 import sys
 from typing import Any
 
 from ._alias_module import AliasModule
-from ._importing import distribution_version as distribution_version  # NOQA:F401
+from ._importing import distribution_version as distribution_version
 from ._module import _initpkg
 from ._module import ApiModule
-from ._version import version as __version__  # NOQA:F401
+from ._version import version as __version__
 
 
 def initpkg(

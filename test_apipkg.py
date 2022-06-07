@@ -70,23 +70,23 @@ class TestRealModule:
             sys.modules.pop(modname, None)
 
     def test_realmodule(self):
-        import realtest.x
+        import realtest.x  # type: ignore
 
         assert "realtest.x.module" in sys.modules
         assert getattr(realtest.x.module, "mytest0")
 
     def test_realmodule_repr(self):
-        import realtest.x
+        import realtest.x  # type: ignore
 
         assert "<ApiModule 'realtest.x'>" == repr(realtest.x)
 
     def test_realmodule_from(self):
-        from realtest.x import module
+        from realtest.x import module  # type: ignore
 
         assert getattr(module, "mytest1")
 
     def test_realmodule__all__(self):
-        import realtest.x.module
+        import realtest.x.module  # type: ignore
 
         assert realtest.x.__all__ == ["module"]
         assert len(realtest.x.module.__all__) == 4
@@ -770,8 +770,8 @@ def test_aliasmodule_proxy_methods(tmpdir, monkeypatch):
     )
 
     monkeypatch.syspath_prepend(tmpdir)
-    import aliasmodule_proxy as orig
-    from my_aliasmodule_proxy import proxy
+    import aliasmodule_proxy as orig  # type: ignore
+    from my_aliasmodule_proxy import proxy  # type: ignore
 
     doit = proxy.doit
     assert doit is orig.doit
@@ -811,20 +811,20 @@ def test_aliasmodule_nested_import_with_from(tmpdir, monkeypatch):
         )
     )
     monkeypatch.syspath_prepend(tmpdir)
-    from api1 import os2
-    from api1.os2.path import abspath
+    from api1 import os2  # type: ignore
+    from api1.os2.path import abspath  # type: ignore
 
     assert abspath == os.path.abspath
     # check that api1.os2 mirrors os.*
     assert os2.x == 3
-    import api1
+    import api1  # type: ignore
 
     assert "os2.path" not in api1.__dict__
 
 
 def test_initpkg_without_old_module():
     apipkg.initpkg("initpkg_without_old_module", dict(modules="sys:modules"))
-    from initpkg_without_old_module import modules
+    from initpkg_without_old_module import modules  # type: ignore
 
     assert modules is sys.modules
 
