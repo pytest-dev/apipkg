@@ -1,3 +1,7 @@
+3.0.1
+------
+
+* restore tox.ini to support tox --current-env based packaging
 
 3.0.0
 -----
