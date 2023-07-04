@@ -869,7 +869,6 @@ def test_importlib_find_spec_aliasmodule(find_spec):
 
 
 def test_importlib_find_spec_initpkg(find_spec, tmpdir, monkeypatch):
-
     modname = "apipkg_test_example_initpkg_findspec"
 
     pkgdir = tmpdir.mkdir("apipkg_test_example_initpkg_findspec")
