@@ -6,7 +6,6 @@ from ._importing import importobj
 
 
 def AliasModule(modname: str, modpath: str, attrname: str | None = None) -> ModuleType:
-
     cached_obj: object | None = None
 
     def getmod() -> object:
