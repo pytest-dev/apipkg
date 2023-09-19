@@ -832,7 +832,7 @@ def test_initpkg_without_old_module():
 def test_get_distribution_version():
     assert apipkg.distribution_version("setuptools") is not None
     assert apipkg.distribution_version("email") is None
-    assert apipkg.distribution_version("py") is not None
+    assert apipkg.distribution_version("pytest") is not None
 
 
 def test_eagerload_on_bython(monkeypatch):
