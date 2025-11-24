@@ -11,10 +11,10 @@ description = "apipkg: namespace control and lazy-import mechanism"
 readme = "README.rst"
 license = "MIT"
 maintainers = [
-    { name = "Ronny Pfannschmidt",  email = "opensource+apipkg@ronnypfannschmidt.de"}
+  { name = "Ronny Pfannschmidt", email = "opensource+apipkg@ronnypfannschmidt.de" },
 ]
 authors = [
-    { name = "holger krekel" },
+  { name = "holger krekel" },
 ]
 requires-python = ">=3.7"
 classifiers = [
@@ -32,21 +32,22 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Programming Language :: Python :: Implementation :: CPython",
   "Topic :: Software Development :: Libraries",
 ]
 dynamic = [
   "version",
 ]
-[project.urls]
-Homepage = "https://github.com/pytest-dev/apipkg"
+urls.Homepage = "https://github.com/pytest-dev/apipkg"
 
 [tool.hatch.version]
 source = "vcs"
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "/src",
+  "/src",
 ]
 [tool.hatch.build.hooks.vcs]
 version-file = "src/apipkg/_version.py"
@@ -58,7 +59,7 @@ dependencies = [
   "pytest-cov",
 ]
 [[tool.hatch.envs.test.matrix]]
-python = ["3.7", "3.8", "3.9", "3.10", "3.11"]
+python = [ "3.7", "3.8", "3.9", "3.10", "3.11" ]
 
 [tool.hatch.envs.test.scripts]
 run-coverage = "pytest --cov-config=pyproject.toml --cov=pkg --cov=tests {args}"
