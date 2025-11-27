@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Python sdist/wheel
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - uses: actions/setup-python@v5
       with:
         python-version: "3.10"
@@ -48,7 +48,7 @@ jobs:
         - python-version: "3.10"
           install-from: "dist/*.tar.gz"
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
