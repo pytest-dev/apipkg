@@ -14,19 +14,23 @@ can copy paste the ~200 lines of code into your project.
 Tutorial example
 -------------------
 
-Here is a simple ``mypkg`` package that specifies one namespace
-and exports two objects imported from different modules:
+Here is a simple ``mypkg`` package that exports one top-level object
+and one nested namespace object:
 
 .. code-block:: python
 
     # mypkg/__init__.py
     import apipkg
-    apipkg.initpkg(__name__, {
-        'path': {
-            'Class1': "_mypkg.somemodule:Class1",
-            'clsattr': "_mypkg.othermodule:Class2.attr",
-        }
-    }
+
+    apipkg.initpkg(
+        __name__,
+        {
+            "SomeClass": "_mypkg.somemodule:SomeClass",
+            "sub": {
+                "OtherClass": "_mypkg.somemodule:OtherClass",
+            },
+        },
+    )
 
 The package is initialized with a dictionary as namespace.
 
@@ -43,14 +47,14 @@ an namespace attribute an import will be performed:
 .. code-block:: pycon
 
     >>> import mypkg
-    >>> mypkg.path
-    <ApiModule 'mypkg.path'>
-    >>> mypkg.path.Class1   # '_mypkg.somemodule' gets imported now
-    <class _mypkg.somemodule.Class1 at 0xb7d428fc>
-    >>> mypkg.path.clsattr  # '_mypkg.othermodule' gets imported now
-    4 # the value of _mypkg.othermodule.Class2.attr
+    >>> mypkg.SomeClass  # '_mypkg.somemodule' gets imported now
+    <class '_mypkg.somemodule.SomeClass'>
+    >>> mypkg.sub
+    <ApiModule 'mypkg.sub'>
+    >>> mypkg.sub.OtherClass
+    <class '_mypkg.othermodule.OtherClass'>
 
-The ``mypkg.path`` namespace and its two entries are
+The ``mypkg.sub`` namespace and its entry are
 loaded when they are accessed.   This means:
 
 * lazy loading - only what is actually needed is ever loaded
@@ -62,7 +66,7 @@ loaded when they are accessed.   This means:
 
 .. code-block:: python
 
-    from mypkg.sub import Class1
+    from mypkg.sub import OtherClass
 
 
 Including apipkg in your package
