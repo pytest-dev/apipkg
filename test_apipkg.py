@@ -24,9 +24,7 @@ class TestRealModule:
         pkgdir = cls.tmpdir.ensure("realtest", dir=1)
 
         tfile = pkgdir.join("__init__.py")
-        tfile.write(
-            textwrap.dedent(
-                """
+        tfile.write(textwrap.dedent("""
             import apipkg
             apipkg.initpkg(__name__, {
                 'x': {
@@ -39,16 +37,12 @@ class TestRealModule:
                 }
             }
             )
-        """
-            )
-        )
+        """))
 
         ipkgdir = cls.tmpdir.ensure("_xyz", dir=1)
         tfile = ipkgdir.join("testmodule.py")
         ipkgdir.ensure("__init__.py")
-        tfile.write(
-            textwrap.dedent(
-                """
+        tfile.write(textwrap.dedent("""
             'test module'
             from _xyz.othermodule import MyTest
 
@@ -58,9 +52,7 @@ class TestRealModule:
                 pass
             def mytest1():
                 pass
-        """
-            )
-        )
+        """))
         ipkgdir.join("othermodule.py").write("class MyTest: pass")
 
     def setup_method(self, *args):
@@ -111,9 +103,7 @@ class TestRealModule:
 class TestScenarios:
     def test_relative_import(self, monkeypatch, tmpdir):
         pkgdir = tmpdir.mkdir("mymodule")
-        pkgdir.join("__init__.py").write(
-            textwrap.dedent(
-                """
+        pkgdir.join("__init__.py").write(textwrap.dedent("""
             import apipkg
             apipkg.initpkg(__name__, exportdefs={
                 '__doc__': '.submod:maindoc',
@@ -122,9 +112,7 @@ class TestScenarios:
                     'z': '.submod:x'
                 },
             })
-        """
-            )
-        )
+        """))
         pkgdir.join("submod.py").write("x=3\nmaindoc='hello'")
         monkeypatch.syspath_prepend(tmpdir)
         import mymodule
@@ -136,25 +124,17 @@ class TestScenarios:
 
     def test_recursive_import(self, monkeypatch, tmpdir):
         pkgdir = tmpdir.mkdir("recmodule")
-        pkgdir.join("__init__.py").write(
-            textwrap.dedent(
-                """
+        pkgdir.join("__init__.py").write(textwrap.dedent("""
             import apipkg
             apipkg.initpkg(__name__, exportdefs={
                 'some': '.submod:someclass',
             })
-        """
-            )
-        )
-        pkgdir.join("submod.py").write(
-            textwrap.dedent(
-                """
+        """))
+        pkgdir.join("submod.py").write(textwrap.dedent("""
             import recmodule
             class someclass: pass
             print(recmodule.__dict__)
-        """
-            )
-        )
+        """))
         monkeypatch.syspath_prepend(tmpdir)
         import recmodule
 
@@ -163,16 +143,12 @@ class TestScenarios:
 
     def test_module_alias_import(self, monkeypatch, tmpdir):
         pkgdir = tmpdir.mkdir("aliasimport")
-        pkgdir.join("__init__.py").write(
-            textwrap.dedent(
-                """
+        pkgdir.join("__init__.py").write(textwrap.dedent("""
             import apipkg
             apipkg.initpkg(__name__, exportdefs={
                 'some': 'os.path',
             })
-        """
-            )
-        )
+        """))
         monkeypatch.syspath_prepend(tmpdir)
         import aliasimport
 
@@ -181,16 +157,12 @@ class TestScenarios:
 
     def test_from_module_alias_import(self, monkeypatch, tmpdir):
         pkgdir = tmpdir.mkdir("fromaliasimport")
-        pkgdir.join("__init__.py").write(
-            textwrap.dedent(
-                """
+        pkgdir.join("__init__.py").write(textwrap.dedent("""
             import apipkg
             apipkg.initpkg(__name__, exportdefs={
                 'some': 'os.path',
             })
-        """
-            )
-        )
+        """))
         monkeypatch.syspath_prepend(tmpdir)
         from fromaliasimport.some import join
 
@@ -365,18 +337,14 @@ def test_name_attribute():
 
 def test_error_loading_one_element(monkeypatch, tmpdir):
     pkgdir = tmpdir.mkdir("errorloading1")
-    pkgdir.join("__init__.py").write(
-        textwrap.dedent(
-            """
+    pkgdir.join("__init__.py").write(textwrap.dedent("""
         import apipkg
         apipkg.initpkg(__name__, exportdefs={
             'x': '.notexists:x',
             'y': '.submod:y'
             },
         )
-    """
-        )
-    )
+    """))
     pkgdir.join("submod.py").write("y=0")
     monkeypatch.syspath_prepend(tmpdir)
     import errorloading1
@@ -391,27 +359,19 @@ def test_error_loading_one_element(monkeypatch, tmpdir):
 
 def test_onfirstaccess(tmpdir, monkeypatch):
     pkgdir = tmpdir.mkdir("firstaccess")
-    pkgdir.join("__init__.py").write(
-        textwrap.dedent(
-            """
+    pkgdir.join("__init__.py").write(textwrap.dedent("""
         import apipkg
         apipkg.initpkg(__name__, exportdefs={
             '__onfirstaccess__': '.submod:init',
             'l': '.submod:l',
             },
         )
-    """
-        )
-    )
-    pkgdir.join("submod.py").write(
-        textwrap.dedent(
-            """
+    """))
+    pkgdir.join("submod.py").write(textwrap.dedent("""
         l = []
         def init():
             l.append(1)
-    """
-        )
-    )
+    """))
     monkeypatch.syspath_prepend(tmpdir)
     import firstaccess
 
@@ -425,27 +385,18 @@ def test_onfirstaccess(tmpdir, monkeypatch):
 def test_onfirstaccess_setsnewattr(tmpdir, monkeypatch, mode):
     pkgname = "mode_" + mode
     pkgdir = tmpdir.mkdir(pkgname)
-    pkgdir.join("__init__.py").write(
-        textwrap.dedent(
-            """
+    pkgdir.join("__init__.py").write(textwrap.dedent("""
         import apipkg
         apipkg.initpkg(__name__, exportdefs={
             '__onfirstaccess__': '.submod:init',
             },
         )
-    """
-        )
-    )
-    pkgdir.join("submod.py").write(
-        textwrap.dedent(
-            """
+    """))
+    pkgdir.join("submod.py").write(textwrap.dedent("""
         def init():
             import %s as pkg
             pkg.newattr = 42
-    """
-            % pkgname
-        )
-    )
+    """ % pkgname))
     monkeypatch.syspath_prepend(tmpdir)
     mod = __import__(pkgname)
     assert isinstance(mod, apipkg.ApiModule)
@@ -463,29 +414,21 @@ def test_onfirstaccess_setsnewattr(tmpdir, monkeypatch, mode):
 @pytest.mark.skipif("threading" not in sys.modules, reason="requires thread support")
 def test_onfirstaccess_race(tmpdir, monkeypatch):
     pkgdir = tmpdir.mkdir("firstaccessrace")
-    pkgdir.join("__init__.py").write(
-        textwrap.dedent(
-            """
+    pkgdir.join("__init__.py").write(textwrap.dedent("""
         import apipkg
         apipkg.initpkg(__name__, exportdefs={
             '__onfirstaccess__': '.submod:init',
             'l': '.submod:l',
             },
         )
-    """
-        )
-    )
-    pkgdir.join("submod.py").write(
-        textwrap.dedent(
-            """
+    """))
+    pkgdir.join("submod.py").write(textwrap.dedent("""
         import time
         l = []
         def init():
             time.sleep(0.1)
             l.append(1)
-    """
-        )
-    )
+    """))
     monkeypatch.syspath_prepend(tmpdir)
     import firstaccessrace
 
@@ -517,26 +460,18 @@ def test_onfirstaccess_race(tmpdir, monkeypatch):
 @pytest.mark.skipif("threading" not in sys.modules, reason="requires thread support")
 def test_attribute_race(tmpdir, monkeypatch):
     pkgdir = tmpdir.mkdir("attributerace")
-    pkgdir.join("__init__.py").write(
-        textwrap.dedent(
-            """
+    pkgdir.join("__init__.py").write(textwrap.dedent("""
         import apipkg
         apipkg.initpkg(__name__, exportdefs={
             'attr': '.submod:attr',
             },
         )
-    """
-        )
-    )
-    pkgdir.join("submod.py").write(
-        textwrap.dedent(
-            """
+    """))
+    pkgdir.join("submod.py").write(textwrap.dedent("""
         import time
         time.sleep(0.1)
         attr = 42
-    """
-        )
-    )
+    """))
     monkeypatch.syspath_prepend(tmpdir)
     import attributerace
 
@@ -567,9 +502,7 @@ def test_attribute_race(tmpdir, monkeypatch):
 @pytest.mark.skipif("threading" not in sys.modules, reason="requires thread support")
 def test_import_race(tmpdir, monkeypatch):
     pkgdir = tmpdir.mkdir("importrace")
-    pkgdir.join("__init__.py").write(
-        textwrap.dedent(
-            """
+    pkgdir.join("__init__.py").write(textwrap.dedent("""
         import time
         time.sleep(0.1)
         import apipkg
@@ -577,16 +510,10 @@ def test_import_race(tmpdir, monkeypatch):
             'attr': '.submod:attr',
             },
         )
-    """
-        )
-    )
-    pkgdir.join("submod.py").write(
-        textwrap.dedent(
-            """
+    """))
+    pkgdir.join("submod.py").write(textwrap.dedent("""
         attr = 43
-    """
-        )
-    )
+    """))
     monkeypatch.syspath_prepend(tmpdir)
 
     class TestThread(threading.Thread):
@@ -636,21 +563,15 @@ def test_chdir_with_relative_imports_support_lazy_loading(tmpdir, monkeypatch):
     monkeypatch.syspath_prepend(os.path.abspath("src"))
     pkg = tmpdir.mkdir("pkg")
     tmpdir.mkdir("messy")
-    pkg.join("__init__.py").write(
-        textwrap.dedent(
-            """
+    pkg.join("__init__.py").write(textwrap.dedent("""
         import apipkg
         apipkg.initpkg(__name__, {
             'test': '.sub:test',
         })
-    """
-        )
-    )
+    """))
     pkg.join("sub.py").write("def test(): pass")
 
-    tmpdir.join("main.py").write(
-        textwrap.dedent(
-            """
+    tmpdir.join("main.py").write(textwrap.dedent("""
         from __future__ import print_function
         import os
         import sys
@@ -662,9 +583,7 @@ def test_chdir_with_relative_imports_support_lazy_loading(tmpdir, monkeypatch):
         os.chdir('messy')
         pkg.test()
         assert os.path.isabs(pkg.sub.__file__), pkg.sub.__file__
-    """
-        )
-    )
+    """))
     res = subprocess.call(
         [sys.executable, "main.py"],
         cwd=str(tmpdir),
@@ -674,14 +593,10 @@ def test_chdir_with_relative_imports_support_lazy_loading(tmpdir, monkeypatch):
 
 def test_dotted_name_lookup(tmpdir, monkeypatch):
     pkgdir = tmpdir.mkdir("dotted_name_lookup")
-    pkgdir.join("__init__.py").write(
-        textwrap.dedent(
-            """
+    pkgdir.join("__init__.py").write(textwrap.dedent("""
         import apipkg
         apipkg.initpkg(__name__, dict(abs='os:path.abspath'))
-    """
-        )
-    )
+    """))
     monkeypatch.syspath_prepend(tmpdir)
     import dotted_name_lookup
 
@@ -690,14 +605,10 @@ def test_dotted_name_lookup(tmpdir, monkeypatch):
 
 def test_extra_attributes(tmpdir, monkeypatch):
     pkgdir = tmpdir.mkdir("extra_attributes")
-    pkgdir.join("__init__.py").write(
-        textwrap.dedent(
-            """
+    pkgdir.join("__init__.py").write(textwrap.dedent("""
         import apipkg
         apipkg.initpkg(__name__, dict(abs='os:path.abspath'), dict(foo='bar'))
-    """
-        )
-    )
+    """))
     monkeypatch.syspath_prepend(tmpdir)
     import extra_attributes
 
@@ -748,26 +659,18 @@ def test_aliasmodule_repr():
 
 def test_aliasmodule_proxy_methods(tmpdir, monkeypatch):
     pkgdir = tmpdir
-    pkgdir.join("aliasmodule_proxy.py").write(
-        textwrap.dedent(
-            """
+    pkgdir.join("aliasmodule_proxy.py").write(textwrap.dedent("""
         def doit():
             return 42
-    """
-        )
-    )
+    """))
 
-    pkgdir.join("my_aliasmodule_proxy.py").write(
-        textwrap.dedent(
-            """
+    pkgdir.join("my_aliasmodule_proxy.py").write(textwrap.dedent("""
         import apipkg
         apipkg.initpkg(__name__, dict(proxy='aliasmodule_proxy'))
 
         def doit():
             return 42
-    """
-        )
-    )
+    """))
 
     monkeypatch.syspath_prepend(tmpdir)
     import aliasmodule_proxy as orig  # type: ignore
@@ -789,27 +692,19 @@ def test_aliasmodule_nested_import_with_from(tmpdir, monkeypatch):
     import os
 
     pkgdir = tmpdir.mkdir("api1")
-    pkgdir.ensure("__init__.py").write(
-        textwrap.dedent(
-            """
+    pkgdir.ensure("__init__.py").write(textwrap.dedent("""
         import apipkg
         apipkg.initpkg(__name__, {
             'os2': 'api2',
             'os2.path': 'api2.path2',
             })
-    """
-        )
-    )
-    tmpdir.join("api2.py").write(
-        textwrap.dedent(
-            """
+    """))
+    tmpdir.join("api2.py").write(textwrap.dedent("""
         import os, sys
         from os import path
         sys.modules['api2.path2'] = path
         x = 3
-    """
-        )
-    )
+    """))
     monkeypatch.syspath_prepend(tmpdir)
     from api1 import os2  # type: ignore
     from api1.os2.path import abspath  # type: ignore
@@ -872,16 +767,12 @@ def test_importlib_find_spec_initpkg(find_spec, tmpdir, monkeypatch):
     modname = "apipkg_test_example_initpkg_findspec"
 
     pkgdir = tmpdir.mkdir("apipkg_test_example_initpkg_findspec")
-    pkgdir.ensure("__init__.py").write(
-        textwrap.dedent(
-            """
+    pkgdir.ensure("__init__.py").write(textwrap.dedent("""
         import apipkg
         apipkg.initpkg(__name__, {
             'email': 'email',
             })
-    """
-        )
-    )
+    """))
 
     monkeypatch.syspath_prepend(tmpdir)
     find_spec(modname)
